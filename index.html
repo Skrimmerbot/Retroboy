@@ -123,5 +123,42 @@ function launchPixelPanic(){
 
 function bootRom(file){if(guestRomTimer){clearTimeout(guestRomTimer);guestRomTimer=null}if(guestRomUrl){URL.revokeObjectURL(guestRomUrl);guestRomUrl=null}const url=URL.createObjectURL(file);if(guestMode){guestRomUrl=url;guestRomTimer=setTimeout(()=>{if(guestRomUrl===url){URL.revokeObjectURL(url);guestRomUrl=null;guestRomTimer=null;const emulator=document.getElementById("emulator-script");if(emulator)emulator.remove();if(window.EJS_emulator){try{window.EJS_emulator=null}catch(e){}}player.innerHTML='<div class="player-message"><h3>Guest session expired.</h3><p>Your locally loaded ROM was cleared after 1 hour. Choose the file again to keep playing.</p><label class="file-btn">CHOOSE ROM <input id="romInput" type="file" accept=".gb,.gbc,.gba,.nds,.zip,application/octet-stream"></label></div>';document.getElementById("romInput").addEventListener("change",e=>e.target.files[0]&&handleRomFile(e.target.files[0]));}},3600000)}player.innerHTML='<div id="game"></div>';window.EJS_player="#game";window.EJS_core=/\.nds$/i.test(file.name)?"nds":(/\.gba$/i.test(file.name)?"gba":"gb");window.EJS_gameUrl=url;window.EJS_pathtodata="https://cdn.emulatorjs.org/stable/data/";window.EJS_startOnLoaded=true;window.EJS_backgroundColor="#0e0c13";window.EJS_gameName=file.name.replace(/\.(gb|gbc|gba|nds|zip)$/i,"");const old=document.getElementById("emulator-script");if(old)old.remove();const script=document.createElement("script");script.id="emulator-script";script.src="https://cdn.emulatorjs.org/stable/data/loader.js";script.onerror=()=>{player.innerHTML='<div class="player-message"><h3>Could not load emulator.</h3><p>Check your internet connection and try again.</p></div>'};document.body.appendChild(script)}
 </script>
+
+<!-- Standalone Drive sign-in recovery handler: remains active if main app script fails to parse. -->
+<script>
+(function(){
+ const btn=document.getElementById("driveSignIn"), status=document.getElementById("driveStatus");
+ if(!btn||!status)return;
+ btn.addEventListener("click",function(ev){
+   ev.preventDefault();ev.stopImmediatePropagation();
+   status.textContent="Starting Google sign-in…";
+   function begin(){
+     try{
+       if(!window.google||!google.accounts||!google.accounts.oauth2){status.textContent="Google sign-in could not load. Reload the page and check script blockers/network.";return;}
+       const client=google.accounts.oauth2.initTokenClient({
+         client_id:"792339289078-io0aipnplpq1hvebb6kg7muqleupegcu.apps.googleusercontent.com",
+         scope:"https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file",
+         callback:async function(resp){
+           if(resp.error){status.textContent="Google sign-in failed: "+resp.error+(resp.error_description?" — "+resp.error_description:"");return;}
+           if(!resp.access_token){status.textContent="Google did not return an access token. Please try again.";return;}
+           status.textContent="Signed in. Loading Drive library…";
+           try{
+             if(typeof driveToken!=="undefined"){driveToken=resp.access_token;guestMode=false;driveFolderId="root";driveFolderPath=[];document.getElementById("driveUpload").disabled=false;await loadDriveLibrary();return;}
+             const response=await fetch("https://www.googleapis.com/drive/v3/files?q="+encodeURIComponent("'root' in parents and trashed=false")+"&fields=files(id,name,mimeType)&pageSize=100",{headers:{Authorization:"Bearer "+resp.access_token}});
+             if(!response.ok)throw new Error("Drive API request failed ("+response.status+")");
+             const data=await response.json();status.textContent="Connected to Google Drive. "+(data.files||[]).length+" item(s) found.";
+           }catch(err){status.textContent="Drive connection error: "+(err.message||String(err));}
+         },
+         error_callback:function(err){status.textContent="Google sign-in popup error: "+(err.message||err.type||"unknown error");}
+       });
+       client.requestAccessToken({prompt:"consent"});
+     }catch(err){status.textContent="Could not start Google sign-in: "+(err.message||String(err));}
+   }
+   if(window.google&&google.accounts&&google.accounts.oauth2)begin();
+   else {const s=document.createElement("script");s.src="https://accounts.google.com/gsi/client";s.onload=begin;s.onerror=function(){status.textContent="Could not load Google sign-in library. Check your connection or script blocker.";};document.head.appendChild(s);}
+ },true);
+})();
+</script>
+
 </body>
 </html>
