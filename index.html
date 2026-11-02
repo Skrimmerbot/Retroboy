@@ -115,7 +115,41 @@ romInput.addEventListener("change",()=>{const file=romInput.files&&romInput.file
 window.playLocalCollectionRom=function(file){guestMode=true;openPlayer();handleRomFile(file)};
 function handleRomFile(file){if(/\.zip$/i.test(file.name)){loadZip(file);return}if(/\.7z$/i.test(file.name)){load7z(file);return}if(!/\.(gb|gbc|gba|nds|nes)$/i.test(file.name)){player.innerHTML='<div class="player-message"><h3>Oops! Not a Game Boy ROM.</h3><p>Select a .nes, .gb, .gbc, .gba, .nds, or ZIP archive.</p><label class="file-btn">TRY AGAIN<input id="romAgain" type="file" accept=".gb,.gbc,.gba,.nds,.nes,.zip"></label></div>';document.getElementById("romAgain").addEventListener("change",e=>e.target.files[0]&&handleRomFile(e.target.files[0]));return}bootRom(file)}
 async function load7z(file){player.innerHTML='<div class="player-message"><h3>UNPACKING 7Z CARTRIDGE…</h3><p>Extracting a ROM from your 7z archive locally in your browser.</p></div>';try{const mod=await import("https://cdn.jsdelivr.net/npm/libarchive.js@2.0.2/+esm");const Archive=mod.Archive||mod.default?.Archive;if(!Archive)throw new Error("7z extraction library did not initialize");Archive.init({workerUrl:"./archive-worker.js",wasmUrl:"https://cdn.jsdelivr.net/npm/libarchive.js@2.0.2/dist/" });const archive=await Archive.open(file);const files=await archive.extractFiles();const entries=Object.entries(files).filter(([name,value])=>value instanceof File&&/\.(gb|gbc|gba|nds|nes)$/i.test(name)).sort((a,b)=>a[0].length-b[0].length);if(!entries.length)throw new Error("No supported .nes, .gb, .gbc, .gba, or .nds ROM was found inside this 7z archive.");const [name,rom]=entries[0];bootRom(new File([rom],name.split("/").pop(),{type:"application/octet-stream"}))}catch(err){player.innerHTML='<div class="player-message"><h3>Could not unpack 7z archive.</h3><p>'+escapeHtml(err.message||String(err))+'</p><label class="file-btn">TRY ANOTHER<input id="romAgain" type="file" accept=".gb,.gbc,.gba,.nds,.nes,.zip,.7z"></label></div>';document.getElementById("romAgain").addEventListener("change",e=>e.target.files[0]&&handleRomFile(e.target.files[0]))}}
-function loadZip(file){player.innerHTML='<div class="player-message"><h3>UNPACKING CARTRIDGE…</h3><p>Searching ZIP for a .nes, .gb, .gbc, .gba, or .nds ROM.</p></div>';let script=document.getElementById("jszip-loader");if(!script){script=document.createElement("script");script.id="jszip-loader";script.src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";script.onload=()=>unpackZip(file);script.onerror=()=>{player.innerHTML='<div class="player-message"><h3>ZIP helper could not load.</h3><p>Check your connection and retry.</p></div>'};document.head.appendChild(script)}else if(window.JSZip)unpackZip(file);else script.onload=()=>unpackZip(file)}
+async function loadZip(file){
+  player.innerHTML='<div class="player-message"><h3>UNPACKING CARTRIDGE…</h3><p>Searching ZIP for a .nes, .gb, .gbc, .gba, or .nds ROM.</p></div>';
+  if(window.JSZip){unpackZip(file);return}
+  const helperUrl="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
+  try{
+    let response=null;
+    if("caches" in window){
+      const cache=await caches.open("retroboy-offline-v1");
+      response=await cache.match(helperUrl);
+    }
+    if(!response){
+      response=await fetch(helperUrl,{mode:"cors",cache:"no-store"});
+      if(!response.ok)throw new Error("ZIP helper download failed ("+response.status+"). Connect to the internet and run DOWNLOAD OFFLINE MODE again.");
+      if("caches" in window){
+        const cache=await caches.open("retroboy-offline-v1");
+        await cache.put(helperUrl,response.clone());
+      }
+    }
+    const source=await response.blob();
+    const blobUrl=URL.createObjectURL(source);
+    let script=document.getElementById("jszip-loader");
+    if(!script){script=document.createElement("script");script.id="jszip-loader";document.head.appendChild(script)}
+    await new Promise((resolve,reject)=>{
+      script.onload=()=>resolve();
+      script.onerror=()=>reject(new Error("The saved ZIP helper could not be started."));
+      script.src=blobUrl;
+    });
+    URL.revokeObjectURL(blobUrl);
+    if(!window.JSZip)throw new Error("ZIP helper loaded but JSZip was not initialized.");
+    unpackZip(file);
+  }catch(error){
+    const detail=escapeHtml(error.message||String(error));
+    player.innerHTML='<div class="player-message"><h3>ZIP helper could not load.</h3><p>'+detail+'</p><p>While online, press DOWNLOAD OFFLINE MODE again, then retry this ZIP.</p></div>';
+  }
+}
 function unpackZip(file){JSZip.loadAsync(file).then(zip=>{const roms=Object.values(zip.files).filter(entry=>!entry.dir&&/\.(gb|gbc|gba|nds|nes)$/i.test(entry.name)).sort((a,b)=>a.name.length-b.name.length);if(!roms.length){player.innerHTML='<div class="player-message"><h3>No supported ROM found.</h3><p>This ZIP contains no supported .nes, .gb, .gbc, .gba, or .nds file.</p><label class="file-btn">TRY ANOTHER<input id="romAgain" type="file" accept=".gb,.gbc,.gba,.nds,.nes,.zip"></label></div>';document.getElementById("romAgain").addEventListener("change",e=>e.target.files[0]&&handleRomFile(e.target.files[0]));return}roms[0].async("blob").then(blob=>bootRom(new File([blob],roms[0].name,{type:"application/octet-stream"})))}).catch(()=>{player.innerHTML='<div class="player-message"><h3>Could not unpack ZIP.</h3><p>Try a different archive.</p></div>'})}
 const dropZones=[player,document.getElementById("upload"),document.getElementById("dropHint")].filter(Boolean);function isRomDrop(e){return e.dataTransfer&&(e.dataTransfer.types&&Array.from(e.dataTransfer.types).includes("Files"))}document.addEventListener("dragover",e=>{if(!isRomDrop(e))return;e.preventDefault();const zone=e.target.closest&&e.target.closest("#player,#upload,#dropHint");if(zone){zone.classList.add("dragging");zone.style.outline="3px dashed #d8ff3e";zone.style.outlineOffset="-8px"}},{capture:true});document.addEventListener("dragleave",e=>{const zone=e.target.closest&&e.target.closest("#player,#upload,#dropHint");if(zone){zone.classList.remove("dragging");zone.style.outline=""}},{capture:true});document.addEventListener("drop",e=>{if(!isRomDrop(e))return;e.preventDefault();e.stopPropagation();dropZones.forEach(zone=>{zone.classList.remove("dragging");zone.style.outline=""});const files=Array.from(e.dataTransfer.files||[]);const file=files.find(f=>/\.(gb|gbc|gba|nds|nes|zip|7z)$/i.test(f.name));if(file){guestMode=true;openPlayer();handleRomFile(file)}else{openPlayer();player.innerHTML='<div class="player-message"><h3>Unsupported file.</h3><p>Drop a .gb, .gbc, .gba, .nds, .zip, or .7z ROM file.</p></div>'}},{capture:true});
 function launchPixelPanic(){
@@ -239,9 +273,15 @@ function bootRom(file){if(guestRomTimer){clearTimeout(guestRomTimer);guestRomTim
       const cache=await caches.open(CACHE_NAME);
       const files=["./","./index.html","./popular-games.js","./games.json","./manifest.json","./icon.svg","./archive-worker.js","https://cdn.emulatorjs.org/stable/data/loader.js","https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"];
       for(const file of files){
-        try{await saveUrl(cache,new URL(file,document.baseURI).href);}
-        catch(error){if(file.includes("emulatorjs.org"))status.textContent="Saving app files… EmulatorJS engine files will cache as you use each system online.";}
+        const absolute=new URL(file,document.baseURI).href;
+        try{await saveUrl(cache,absolute);}
+        catch(error){
+          if(file.includes("jszip.min.js"))throw new Error("Could not save the ZIP extraction helper. Keep internet access on and try again.");
+          if(file.includes("emulatorjs.org"))status.textContent="Saving app files… EmulatorJS engine files will cache as you use each system online.";
+        }
       }
+      const zipHelper="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
+      if(!await cache.match(zipHelper))throw new Error("ZIP helper was not stored for offline use. Please try again while online.");
       button.textContent="✓ APP SAVED OFFLINE";
       status.textContent="RETROBOY app saved on this device. Now use SAVE OFFLINE on each game you want available without internet. Launch each system once while online to let its emulator resources cache.";
     }catch(error){
