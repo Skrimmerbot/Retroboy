@@ -1,5 +1,5 @@
 const CACHE_NAME="retroboy-offline-v1";
-const APP_SHELL=["./","./index.html","./popular-games.js","./games.json","./manifest.json","./icon.svg"];
+const APP_SHELL=["./","./index.html","./popular-games.js","./games.json","./manifest.json","./icon.svg","./archive-worker.js"];
 const CACHEABLE_HOSTS=new Set([
   "cdn.emulatorjs.org",
   "cdnjs.cloudflare.com",
