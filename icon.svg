@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<rect width="512" height="512" rx="112" fill="#17131f"/>
+<rect x="86" y="58" width="340" height="396" rx="66" fill="#d8ff3e"/>
+<rect x="126" y="108" width="260" height="204" rx="22" fill="#6b52a8"/>
+<rect x="148" y="130" width="216" height="160" rx="8" fill="#a9c878"/>
+<g fill="#456b45"><path d="M148 246h42v-34h24v34h24v-58h24v58h24v-36h24v36h54v44H148z"/><path d="M210 174h20v20h-20zm80 12h20v20h-20z"/></g>
+<path d="M170 360h90v28h-90z" fill="#2c2542"/><circle cx="336" cy="364" r="27" fill="#ff5ca8"/><circle cx="390" cy="328" r="27" fill="#7856ff"/>
+<text x="256" y="88" text-anchor="middle" font-family="monospace" font-size="22" font-weight="bold" fill="#17131f">RETROBOY</text>
+</svg>
