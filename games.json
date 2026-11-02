@@ -13,6 +13,42 @@
       "rom": "roms/libbet.gb.b64",
       "fileName": "libbet.gb",
       "art": "🧩"
+    },
+    {
+      "title": "Asterix and Obelix XXL",
+      "system": "GAME BOY ADVANCE · ACTION",
+      "rom": "roms/Asterix and Obelix XXL # GBA.GBA",
+      "art": "🍄"
+    },
+    {
+      "title": "Kingdom Hearts: Chain of Memories",
+      "system": "GAME BOY ADVANCE · RPG",
+      "rom": "roms/Kingdom Hearts_ Chain of Memories.zip",
+      "art": "🔑"
+    },
+    {
+      "title": "Kunio-kun no Nekketsu Soccer League",
+      "system": "NES · SPORTS",
+      "rom": "roms/Kunio Kun no Nekketsu Soccer League (J) [T-Eng1.1 pentarouzero].zip",
+      "art": "⚽"
+    },
+    {
+      "title": "Mega Man Xtreme",
+      "system": "GAME BOY COLOR · ACTION",
+      "rom": "roms/Mega Man Xtreme (USA, Europe) (GB Compatible).gbc",
+      "art": "🤖"
+    },
+    {
+      "title": "River City Ransom",
+      "system": "NES · BEAT ’EM UP",
+      "rom": "roms/River City Ransom.zip",
+      "art": "👊"
+    },
+    {
+      "title": "Kunio-kun (ZIP)",
+      "system": "ARCHIVE · KUNIO SERIES",
+      "rom": "roms/kunio.zip",
+      "art": "🥋"
     }
   ]
 }
