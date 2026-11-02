@@ -65,12 +65,10 @@
       if (!response.ok) throw new Error("ROM file not found (" + response.status + ")");
       const blob = await response.blob();
       const file = new File([blob], game.rom.split("/").pop(), { type: "application/octet-stream" });
-      if (typeof window.handleRomFile !== "function" || typeof window.openPlayer !== "function") {
+      if (typeof window.playLocalCollectionRom !== "function") {
         throw new Error("The RETROBOY player is not ready. Please reload the page.");
       }
-      window.guestMode = true;
-      window.openPlayer();
-      window.handleRomFile(file);
+      window.playLocalCollectionRom(file);
       if (status) status.textContent = "Playing " + game.title + " · loaded from the RETROBOY collection.";
     } catch (error) {
       if (status) status.textContent = "Could not load " + game.title + ": " + (error.message || String(error));
