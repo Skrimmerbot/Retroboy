@@ -11,7 +11,7 @@ self.addEventListener("install",event=>{
   event.waitUntil((async()=>{
     const cache=await caches.open(CACHE_NAME);
     await Promise.all(APP_SHELL.map(async path=>{
-      try{const response=await fetch(path,{cache:"reload"});if(response.ok)await cache.put(path,response)}catch(_){}
+      try{const key=new URL(path,self.registration.scope).href;const response=await fetch(key,{cache:"reload"});if(response.ok)await cache.put(key,response)}catch(_){}
     }));
     await self.skipWaiting();
   })());
@@ -38,7 +38,7 @@ self.addEventListener("fetch",event=>{
         if(fresh.ok)await cache.put(request,fresh.clone());
         return fresh;
       }catch(error){
-        return cached||await cache.match("./index.html")||Response.error();
+        return cached||await cache.match(new URL("./index.html",self.registration.scope).href)||Response.error();
       }
     }
     if(cached){
