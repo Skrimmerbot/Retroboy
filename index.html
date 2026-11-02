@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#17131f">
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
@@ -14,7 +14,7 @@
 <script src="https://accounts.google.com/gsi/client"></script>
 <style>
 :root{--ink:#17131f;--paper:#f4f0e6;--purple:#7856ff;--lime:#d8ff3e;--pink:#ff5ca8;--orange:#ff9d38;--blue:#70e1ff;--muted:#aaa2b7;--line:rgba(244,240,230,.15)}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--ink);color:var(--paper);font-family:"Space Grotesk",sans-serif;overflow-x:hidden}button,input{font:inherit}button{cursor:pointer}
+*{box-sizing:border-box;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}input,textarea,[contenteditable="true"]{-webkit-user-select:text;user-select:text}html{scroll-behavior:smooth;touch-action:manipulation}body{margin:0;touch-action:manipulation;background:var(--ink);color:var(--paper);font-family:"Space Grotesk",sans-serif;overflow-x:hidden}button,input{font:inherit}button{cursor:pointer}
 .noise{position:fixed;inset:0;pointer-events:none;opacity:.04;z-index:5;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E")}
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:24px clamp(18px,5vw,72px);border-bottom:1px solid var(--line);position:relative;z-index:2}
 .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--paper);font:12px "Press Start 2P",monospace;letter-spacing:-1px}.brand-mark{width:36px;height:36px;background:var(--lime);color:var(--ink);display:grid;place-items:center;border-radius:11px 5px 12px 4px;font-size:17px;transform:rotate(-8deg)}
@@ -204,6 +204,14 @@ function launchPixelPanic(){
 }
 
 function bootRom(file){if(activeGameSession){alert("Only one game can run at a time. Close the current game first by pressing and holding X.");return}activeGameSession=true;if(guestRomTimer){clearTimeout(guestRomTimer);guestRomTimer=null}if(guestRomUrl){URL.revokeObjectURL(guestRomUrl);guestRomUrl=null}const url=URL.createObjectURL(file);if(guestMode){guestRomUrl=url;guestRomTimer=setTimeout(()=>{if(guestRomUrl===url){URL.revokeObjectURL(url);guestRomUrl=null;guestRomTimer=null;const emulator=document.getElementById("emulator-script");if(emulator)emulator.remove();if(window.EJS_emulator){try{window.EJS_emulator=null}catch(e){}}player.innerHTML='<div class="player-message"><h3>Guest session expired.</h3><p>Your locally loaded ROM was cleared after 1 hour. Choose the file again to keep playing.</p><label class="file-btn">CHOOSE ROM <input id="romInput" type="file" accept=".gb,.gbc,.gba,.nds,.nes,.zip,application/octet-stream"></label></div>';document.getElementById("romInput").addEventListener("change",e=>e.target.files[0]&&handleRomFile(e.target.files[0]));}},3600000)}player.innerHTML='<div id="game"></div>';window.EJS_player="#game";window.EJS_core=/\.nes$/i.test(file.name)?"nes":(/\.nds$/i.test(file.name)?"nds":(/\.gba$/i.test(file.name)?"gba":"gb"));window.EJS_gameUrl=url;window.EJS_pathtodata="https://cdn.emulatorjs.org/stable/data/";window.EJS_startOnLoaded=true;window.EJS_askBeforeExit=false;window.EJS_onExit=function(){closePlayer()};window.EJS_backgroundColor="#0e0c13";window.EJS_gameName=file.name.replace(/\.(gb|gbc|gba|nds|nes|zip|7z)$/i,"");const old=document.getElementById("emulator-script");if(old)old.remove();const script=document.createElement("script");script.id="emulator-script";script.src="https://cdn.emulatorjs.org/stable/data/loader.js";script.onerror=()=>{player.innerHTML='<div class="player-message"><h3>Could not load emulator.</h3><p>Check your internet connection and try again.</p></div>'};document.body.appendChild(script)}
+</script>
+
+<script>
+/* Disable iOS Safari pinch-zoom gestures and double-tap zoom. */
+document.addEventListener("gesturestart",function(event){event.preventDefault();},{passive:false});
+document.addEventListener("gesturechange",function(event){event.preventDefault();},{passive:false});
+document.addEventListener("gestureend",function(event){event.preventDefault();},{passive:false});
+document.addEventListener("dblclick",function(event){event.preventDefault();},{passive:false});
 </script>
 
 <script src="./popular-games.js"></script>
