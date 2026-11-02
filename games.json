@@ -1,3 +1,18 @@
 {
-  "games": []
+  "games": [
+    {
+      "title": "Tobu Tobu Girl Deluxe",
+      "system": "GAME BOY COLOR · PLATFORMER",
+      "rom": "roms/tobu-tobu-girl-deluxe.gb.b64",
+      "fileName": "tobu-tobu-girl-deluxe.gb",
+      "art": "🐈"
+    },
+    {
+      "title": "Libbet and the Magic Floor",
+      "system": "GAME BOY · PUZZLE",
+      "rom": "roms/libbet.gb.b64",
+      "fileName": "libbet.gb",
+      "art": "🧩"
+    }
+  ]
 }
