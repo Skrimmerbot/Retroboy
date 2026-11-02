@@ -4,19 +4,22 @@
       "title": "Asterix and Obelix XXL",
       "system": "GAME BOY ADVANCE · ACTION",
       "rom": "roms/Asterix and Obelix XXL # GBA.GBA",
-      "art": "✦"
+      "art": "✦",
+      "cover": "covers/asterixxxl.jpeg"
     },
     {
       "title": "Kingdom Hearts: Chain of Memories",
       "system": "GAME BOY ADVANCE · RPG",
       "rom": "roms/Kingdom Hearts_ Chain of Memories.zip",
-      "art": "◇"
+      "art": "◇",
+      "cover": "covers/kingdom-hearts.jpg"
     },
     {
       "title": "Kunio-kun no Nekketsu Soccer League",
       "system": "NES · SPORTS",
       "rom": "roms/Kunio Kun no Nekketsu Soccer League (J) [T-Eng1.1 pentarouzero].zip",
-      "art": "●"
+      "art": "●",
+      "cover": "covers/kunio-soccer.png"
     },
     {
       "title": "Mega Man Xtreme",
