@@ -49,7 +49,7 @@
     return typeof path === "string" &&
       !path.startsWith("/") &&
       !path.includes("..") &&
-      /\.(gb|gbc|gba|nds|zip|7z|b64)$/i.test(path);
+      /\.(gb|gbc|gba|nds|nes|zip|7z|b64)$/i.test(path);
   }
 
   async function playGame(game, button) {
