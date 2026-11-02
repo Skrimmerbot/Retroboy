@@ -19,6 +19,10 @@
     ".popular-catalog .catalog-info p{color:var(--muted);font-size:12px;margin:5px 0 0}" +
     ".popular-catalog .catalog-action{flex-shrink:0;border:0;border-radius:50%;width:38px;height:38px;background:var(--pink);color:var(--ink);font-weight:900;cursor:pointer}" +
     ".popular-catalog .catalog-action:disabled{opacity:.55;cursor:wait}" +
+    ".popular-catalog .catalog-tools{display:flex;align-items:center;gap:7px;flex-shrink:0}" +
+    ".popular-catalog .catalog-offline{border:1px solid var(--line);background:transparent;color:var(--paper);border-radius:8px;padding:8px 9px;font-size:10px;font-weight:700;letter-spacing:.03em;cursor:pointer;white-space:nowrap}" +
+    ".popular-catalog .catalog-offline.is-saved{border-color:var(--lime);color:var(--lime)}" +
+    ".popular-catalog .catalog-offline:disabled{opacity:.55;cursor:wait}" +
     "@media(max-width:900px){.popular-catalog .catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}" +
     "@media(max-width:560px){.popular-catalog .catalog-grid{gap:10px}.popular-catalog .catalog-art{border-radius:15px 5px 15px 5px;font-size:48px}.popular-catalog .catalog-info{padding:10px 2px}.popular-catalog .catalog-info h3{font-size:12px}}";
   document.head.appendChild(style);
@@ -36,6 +40,20 @@
 
   const grid = section.querySelector(".catalog-grid");
   const status = document.getElementById("driveStatus");
+  const OFFLINE_CACHE = "retroboy-offline-v1";
+  function romUrl(game) { return new URL(game.rom, document.baseURI).href; }
+  async function refreshOfflineButton(button, game) {
+    try { const cache = await caches.open(OFFLINE_CACHE); const saved = await cache.match(romUrl(game)); button.classList.toggle("is-saved", !!saved); button.textContent = saved ? "SAVED OFFLINE" : "SAVE OFFLINE"; button.setAttribute("aria-pressed", saved ? "true" : "false"); } catch (_) { button.textContent = "OFFLINE N/A"; button.disabled = true; }
+  }
+  async function toggleOffline(game, button) {
+    button.disabled = true; const cache = await caches.open(OFFLINE_CACHE); const url = romUrl(game);
+    try {
+      const saved = await cache.match(url);
+      if (saved) { await cache.delete(url); button.classList.remove("is-saved"); button.textContent = "SAVE OFFLINE"; button.setAttribute("aria-pressed", "false"); if(status) status.textContent = game.title + " removed from offline storage."; }
+      else { if(status) status.textContent = "Saving " + game.title + " for offline play…"; const response = await fetch(url, {cache:"reload"}); if (!response.ok) throw new Error("Download failed (" + response.status + ")"); await cache.put(url, response.clone()); button.classList.add("is-saved"); button.textContent = "SAVED OFFLINE"; button.setAttribute("aria-pressed", "true"); if(status) status.textContent = game.title + " is saved for offline play on this device."; }
+    } catch(error) { if(status) status.textContent = "Could not update offline copy of " + game.title + ": " + (error.message || error); }
+    finally { button.disabled = false; }
+  }
 
   function showEmpty(message) {
     grid.innerHTML = "";
@@ -83,7 +101,7 @@
       if (status) status.textContent = "Could not load " + game.title + ": " + (error.message || String(error));
     } finally {
       button.disabled = false;
-      button.textContent = "▶";
+      button.textContent = "▶︎";
     }
   }
 
@@ -110,10 +128,10 @@
           img.src = game.cover;
           img.alt = game.title + " cover";
           img.loading = "lazy";
-          img.onerror = () => { img.remove(); art.textContent = game.art || "🕹️"; };
+          img.onerror = () => { img.remove(); art.textContent = game.art || "▣"; };
           art.appendChild(img);
         } else {
-          art.textContent = game.art || "🕹️";
+          art.textContent = game.art || "▣";
         }
         const info = document.createElement("div");
         info.className = "catalog-info";
@@ -123,13 +141,21 @@
         const detail = document.createElement("p");
         detail.textContent = game.system || "RETROBOY COLLECTION";
         labels.append(title, detail);
+        const tools = document.createElement("div");
+        tools.className = "catalog-tools";
+        const offline = document.createElement("button");
+        offline.className = "catalog-offline";
+        offline.type = "button";
+        offline.addEventListener("click", () => toggleOffline(game, offline));
+        refreshOfflineButton(offline, game);
         const play = document.createElement("button");
         play.className = "catalog-action";
         play.type = "button";
-        play.textContent = "▶";
+        play.textContent = "▶︎";
         play.setAttribute("aria-label", "Play " + game.title);
         play.addEventListener("click", () => playGame(game, play));
-        info.append(labels, play);
+        tools.append(offline, play);
+        info.append(labels, tools);
         card.append(art, info);
         grid.appendChild(card);
       });
