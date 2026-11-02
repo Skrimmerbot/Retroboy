@@ -41,12 +41,7 @@ self.addEventListener("fetch",event=>{
         return cached||await cache.match(new URL("./index.html",self.registration.scope).href)||Response.error();
       }
     }
-    if(cached){
-      event.waitUntil(fetch(request).then(response=>{
-        if(response.ok||response.type==="opaque")return cache.put(request,response.clone());
-      }).catch(()=>{}));
-      return cached;
-    }
+    if(cached)return cached;
     try{
       const response=await fetch(request);
       if(response.ok||response.type==="opaque")await cache.put(request,response.clone());
