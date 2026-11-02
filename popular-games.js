@@ -6,14 +6,14 @@
       title: "Tobu Tobu Girl",
       system: "GAME BOY · HOMEBREW",
       art: "🎀",
-      url: "https://tangramgames.itch.io/tobutobugirl",
+      url: "https://tangramgames.dk/tobutobugirl/",
       desc: "A vertical arcade platformer from Tangram Games."
     },
     {
       title: "µCity",
       system: "GAME BOY COLOR · OPEN SOURCE",
       art: "🏙️",
-      url: "https://codeberg.org/SkyLyrac/ucity/releases",
+      url: "https://github.com/AntonioND/ucity",
       desc: "A free, open-source city-building game."
     }
   ];
