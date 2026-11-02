@@ -49,7 +49,7 @@
     return typeof path === "string" &&
       !path.startsWith("/") &&
       !path.includes("..") &&
-      /\.(gb|gbc|gba|nds|zip|7z)$/i.test(path);
+      /\.(gb|gbc|gba|nds|zip|7z|b64)$/i.test(path);
   }
 
   async function playGame(game, button) {
@@ -63,8 +63,17 @@
     try {
       const response = await fetch(new URL(game.rom, document.baseURI));
       if (!response.ok) throw new Error("ROM file not found (" + response.status + ")");
-      const blob = await response.blob();
-      const file = new File([blob], game.rom.split("/").pop(), { type: "application/octet-stream" });
+      let bytes;
+      let fileName = game.fileName || game.rom.split("/").pop();
+      if (/\\.b64$/i.test(game.rom)) {
+        const encoded = (await response.text()).replace(/\\s+/g, "");
+        const decoded = atob(encoded);
+        bytes = new Uint8Array(decoded.length);
+        for (let i = 0; i < decoded.length; i++) bytes[i] = decoded.charCodeAt(i);
+      } else {
+        bytes = await response.arrayBuffer();
+      }
+      const file = new File([bytes], fileName, { type: "application/octet-stream" });
       if (typeof window.playLocalCollectionRom !== "function") {
         throw new Error("The RETROBOY player is not ready. Please reload the page.");
       }
