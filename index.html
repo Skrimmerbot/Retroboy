@@ -128,6 +128,7 @@ function bootRom(file){if(guestRomTimer){clearTimeout(guestRomTimer);guestRomTim
 <script>
 (function(){
  const btn=document.getElementById("driveSignIn"), status=document.getElementById("driveStatus");
+ function escapeHtml(s){return String(s).replace(/[&<>"\']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","\'":"&#39;"}[ch]))}
  if(!btn||!status)return;
  btn.addEventListener("click",function(ev){
    ev.preventDefault();ev.stopImmediatePropagation();
