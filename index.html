@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#17131f">
+<meta name="theme-color" content="#17131f">\n<link rel="manifest" href="./manifest.json">\n<link rel="icon" href="./icon.svg" type="image/svg+xml">
 <!-- Pages publish refresh: Drive folder pagination and shared-drive listing fixes -->
 <title>RETROBOY — Pocket-sized chaos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -57,7 +57,7 @@ footer{padding:24px clamp(18px,5vw,72px);border-top:1px solid var(--line);displa
 <div class="kicker">A tiny portal to big nostalgia</div>
 <h1>POCKET<br><span class="stroke">SIZED</span><br><span class="zap">CHAOS.</span></h1>
 <p class="hero-copy">Your browser. Your arcade. A whole lotta pixel-powered fun. Pick a cartridge, crank up the nostalgia, and get your game face on.</p>
-<div class="hero-actions"><a class="btn btn-lime" href="#library">EXPLORE THE VAULT <span>↘</span></a><a class="btn btn-outline" href="#upload">LOAD YOUR OWN <span>＋</span></a></div>
+<div class="hero-actions"><a class="btn btn-lime" href="#library">EXPLORE THE VAULT <span>↘</span></a><a class="btn btn-outline" href="#upload">LOAD YOUR OWN <span>＋</span></a><button class="btn btn-outline" id="offlineDownloadBtn" type="button">⬇ DOWNLOAD OFFLINE MODE</button></div><p id="offlineStatus" role="status" style="margin:12px 0 0;color:var(--lime);font-size:12px;line-height:1.6;max-width:560px"></p>
 </div>
 <div class="hero-art" aria-label="Illustration of a playful retro handheld console">
 <div class="orbit"></div><div class="tiny-pill">8-BIT CLUB ✳</div><div class="starburst">✳</div>
@@ -207,5 +207,65 @@ function bootRom(file){if(guestRomTimer){clearTimeout(guestRomTimer);guestRomTim
 })();
 </script>
 
-</body>
+
+<script>
+(function(){
+  const button=document.getElementById("offlineDownloadBtn");
+  const status=document.getElementById("offlineStatus");
+  if(!button||!status)return;
+  const CACHE_NAME="retroboy-offline-v1";
+  async function saveUrl(cache,url,label){
+    const response=await fetch(url,{cache:"reload"});
+    if(!response.ok&&response.type!=="opaque")throw new Error(label+" ("+response.status+")");
+    await cache.put(url,response.clone());
+  }
+  button.addEventListener("click",async function(){
+    if(!("serviceWorker" in navigator)||!("caches" in window)){
+      status.textContent="Offline saving is not supported in this browser. Try the latest version of Chrome, Safari, or Edge.";
+      return;
+    }
+    button.disabled=true;
+    const original=button.textContent;
+    button.textContent="PREPARING OFFLINE…";
+    status.textContent="Registering offline support…";
+    try{
+      await navigator.serviceWorker.register("./sw.js");
+      await navigator.serviceWorker.ready;
+      const cache=await caches.open(CACHE_NAME);
+      const baseUrls=["./","./index.html","./popular-games.js","./games.json","./manifest.json","./icon.svg",
+        "https://cdn.emulatorjs.org/stable/data/loader.js",
+        "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"];
+      let saved=0;
+      for(const url of baseUrls){
+        try{await saveUrl(cache,new URL(url,document.baseURI).href,url);saved++;}
+        catch(error){if(url.includes("emulatorjs.org"))status.textContent="Saving app files… Emulator loader will also be cached when available."; }
+      }
+      status.textContent="Reading your RETROBOY catalogue…";
+      const catalogueResponse=await fetch("./games.json",{cache:"no-store"});
+      if(!catalogueResponse.ok)throw new Error("Could not read games.json");
+      const catalogue=await catalogueResponse.json();
+      const games=Array.isArray(catalogue.games)?catalogue.games:[];
+      let romSaved=0;
+      for(let i=0;i<games.length;i++){
+        const game=games[i];
+        if(!game||typeof game.rom!=="string"||game.rom.startsWith("/")||game.rom.includes(".."))continue;
+        status.textContent="Saving game files ("+(i+1)+" of "+games.length+"): "+(game.title||"ROM")+"…";
+        await saveUrl(cache,new URL(game.rom,document.baseURI).href,game.title||game.rom);
+        romSaved++;
+      }
+      status.textContent="Offline pack saved: app files and "+romSaved+" game ROM(s). For complete offline play, open each console type once while online so EmulatorJS can cache its matching system engine. Then try RETROBOY in airplane mode.";
+      button.textContent="✓ OFFLINE MODE SAVED";
+    }catch(error){
+      status.textContent="Offline setup could not finish: "+(error.message||String(error))+". Check storage space and try again.";
+      button.textContent=original;
+    }finally{
+      button.disabled=false;
+    }
+  });
+  if("serviceWorker" in navigator){
+    navigator.serviceWorker.register("./sw.js").catch(()=>{});
+  }
+})();
+</script>
+\n</body>
 </html>
