@@ -45,12 +45,30 @@
   async function refreshOfflineButton(button, game) {
     try { const cache = await caches.open(OFFLINE_CACHE); const saved = await cache.match(romUrl(game)); button.classList.toggle("is-saved", !!saved); button.textContent = saved ? "SAVED OFFLINE" : "SAVE OFFLINE"; button.setAttribute("aria-pressed", saved ? "true" : "false"); } catch (_) { button.textContent = "OFFLINE N/A"; button.disabled = true; }
   }
+  function playableCacheUrl(url) { const key = new URL(url); key.searchParams.set("retroboy-playable", "1"); return key.href; }
   async function toggleOffline(game, button) {
-    button.disabled = true; const cache = await caches.open(OFFLINE_CACHE); const url = romUrl(game);
+    button.disabled = true; const cache = await caches.open(OFFLINE_CACHE); const url = romUrl(game); const playableKey = playableCacheUrl(url);
     try {
-      const saved = await cache.match(url);
-      if (saved) { await cache.delete(url); button.classList.remove("is-saved"); button.textContent = "SAVE OFFLINE"; button.setAttribute("aria-pressed", "false"); if(status) status.textContent = game.title + " removed from offline storage."; }
-      else { if(status) status.textContent = "Saving " + game.title + " for offline play…"; const response = await fetch(url, {cache:"reload"}); if (!response.ok) throw new Error("Download failed (" + response.status + ")"); await cache.put(url, response.clone()); button.classList.add("is-saved"); button.textContent = "SAVED OFFLINE"; button.setAttribute("aria-pressed", "true"); if(status) status.textContent = game.title + " is saved for offline play on this device."; }
+      const saved = await cache.match(playableKey);
+      if (saved) { await cache.delete(playableKey); await cache.delete(url); button.classList.remove("is-saved"); button.textContent = "SAVE OFFLINE"; button.setAttribute("aria-pressed", "false"); if(status) status.textContent = game.title + " removed from offline storage."; }
+      else {
+        if(status) status.textContent = "Downloading " + game.title + " and preparing its playable ROM…";
+        const response = await fetch(url, {cache:"reload"}); if (!response.ok) throw new Error("Download failed (" + response.status + ")");
+        const blob = await response.blob(); let playableBlob = blob; let playableName = game.fileName || game.rom.split("/").pop();
+        if (/\\.zip$/i.test(game.rom)) {
+          if (!window.JSZip) throw new Error("ZIP extraction helper is unavailable. Run DOWNLOAD OFFLINE MODE while online, then retry.");
+          const archive = await JSZip.loadAsync(blob);
+          const entries = Object.values(archive.files).filter(entry => !entry.dir && /\\.(gb|gbc|gba|nds|nes)$/i.test(entry.name)).sort((a,b)=>a.name.length-b.name.length);
+          if (!entries.length) throw new Error("No supported playable ROM found inside this ZIP.");
+          playableBlob = await entries[0].async("blob"); playableName = entries[0].name.split("/").pop();
+        } else if (/\\.7z$/i.test(game.rom)) {
+          throw new Error("7Z offline extraction is not supported yet. Use a ZIP or uncompressed ROM.");
+        }
+        await cache.put(playableKey, new Response(playableBlob, {headers:{"Content-Type":"application/octet-stream","X-Retroboy-Filename":playableName}}));
+        await cache.put(url, new Response(blob, {headers:{"Content-Type":"application/octet-stream"}}));
+        button.classList.add("is-saved"); button.textContent = "SAVED OFFLINE"; button.setAttribute("aria-pressed", "true");
+        if(status) status.textContent = game.title + " playable ROM is extracted and saved offline. Emulator core must be cached by launching it online once.";
+      }
     } catch(error) { if(status) status.textContent = "Could not update offline copy of " + game.title + ": " + (error.message || error); }
     finally { button.disabled = false; }
   }
@@ -79,10 +97,18 @@
     button.textContent = "…";
     if (status) status.textContent = "Loading " + game.title + "…";
     try {
-      const response = await fetch(new URL(game.rom, document.baseURI));
-      if (!response.ok) throw new Error("ROM file not found (" + response.status + ")");
-      let bytes;
+      const sourceUrl = new URL(game.rom, document.baseURI);
+      const cache = "caches" in window ? await caches.open(OFFLINE_CACHE) : null;
+      const playableKey = playableCacheUrl(sourceUrl.href);
+      const offlinePlayable = cache ? await cache.match(playableKey) : null;
+      let response, bytes;
       let fileName = game.fileName || game.rom.split("/").pop();
+      if (offlinePlayable) {
+        bytes = await offlinePlayable.arrayBuffer();
+        fileName = offlinePlayable.headers.get("X-Retroboy-Filename") || fileName;
+      } else {
+        response = await fetch(sourceUrl);
+        if (!response.ok) throw new Error("ROM file not found (" + response.status + ")");
       if (/\\.b64$/i.test(game.rom)) {
         const encoded = (await response.text()).replace(/\\s+/g, "");
         const decoded = atob(encoded);
@@ -90,6 +116,7 @@
         for (let i = 0; i < decoded.length; i++) bytes[i] = decoded.charCodeAt(i);
       } else {
         bytes = await response.arrayBuffer();
+      }
       }
       const file = new File([bytes], fileName, { type: "application/octet-stream" });
       if (typeof window.playLocalCollectionRom !== "function") {
