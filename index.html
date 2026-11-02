@@ -234,7 +234,7 @@ function bootRom(file){if(guestRomTimer){clearTimeout(guestRomTimer);guestRomTim
       await navigator.serviceWorker.register("./sw.js");
       await navigator.serviceWorker.ready;
       const cache=await caches.open(CACHE_NAME);
-      const baseUrls=["./","./index.html","./popular-games.js","./games.json","./manifest.json","./icon.svg",
+      const baseUrls=["./","./index.html","./popular-games.js","./games.json","./manifest.json","./icon.svg","./archive-worker.js",
         "https://cdn.emulatorjs.org/stable/data/loader.js",
         "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"];
       let saved=0;
