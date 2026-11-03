@@ -8,9 +8,9 @@
   const stopBtn=document.getElementById("controllerQRClose");
   if(!openBtn||!panel||!qr||!status||!stopBtn)return;
   let peer=null,connection=null,pressed=new Set(),qrcode=null;
-  const keys={37:"ArrowLeft",38:"ArrowUp",39:"ArrowRight",40:"ArrowDown",88:"x",90:"z",83:"s",65:"a",13:"Enter",86:"v",81:"q",69:"e"};
+  const inputIndex={37:6,38:4,39:7,40:5,88:0,90:8,83:1,65:9,13:3,86:2,81:10,69:11};
   function send(type,code){if(connection&&connection.open)connection.send({type,code});}
-  function releaseAll(){pressed.forEach(code=>send("up",code));pressed.clear();}
+  function releaseAll(){pressed.forEach(code=>{send("up",code);const manager=window.EJS_emulator&&window.EJS_emulator.gameManager;if(manager&&typeof manager.simulateInput==="function")manager.simulateInput(0,inputIndex[code],0)});pressed.clear();}
   function teardown(message){
     releaseAll();
     if(connection){try{connection.close()}catch(e){}connection=null}
@@ -37,9 +37,11 @@
       connection=conn;
       conn.on("open",()=>{status.textContent="PHONE CONNECTED · Tap controls on your phone.";});
       conn.on("data",data=>{
-        if(!data||!Number.isInteger(data.code)||!Object.prototype.hasOwnProperty.call(keys,data.code))return;
-        if(data.type==="down"&&!pressed.has(data.code)){pressed.add(data.code);const key=keys[data.code];const ev=new KeyboardEvent("keydown",{key,code:"",keyCode:data.code,which:data.code,bubbles:true,cancelable:true});window.dispatchEvent(ev);document.dispatchEvent(ev);}
-        else if(data.type==="up"&&pressed.has(data.code)){pressed.delete(data.code);const key=keys[data.code];const ev=new KeyboardEvent("keyup",{key,keyCode:data.code,which:data.code,bubbles:true,cancelable:true});window.dispatchEvent(ev);document.dispatchEvent(ev);}
+        if(!data||!Number.isInteger(data.code)||!Object.prototype.hasOwnProperty.call(inputIndex,data.code))return;
+        const manager=window.EJS_emulator&&window.EJS_emulator.gameManager;
+        if(!manager||typeof manager.simulateInput!=="function"){status.textContent="Phone connected, but emulator input API is not ready. Reload the game after it boots.";return;}
+        if(data.type==="down"&&!pressed.has(data.code)){pressed.add(data.code);manager.simulateInput(0,inputIndex[data.code],1);}
+        else if(data.type==="up"&&pressed.has(data.code)){pressed.delete(data.code);manager.simulateInput(0,inputIndex[data.code],0);}
       });
       conn.on("close",()=>{releaseAll();connection=null;status.textContent="Phone disconnected. Scan the QR code again to reconnect.";});
       conn.on("error",()=>{releaseAll();status.textContent="Controller connection error. Please reconnect.";});
