@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#17131f">
+<title>RETROBOY · Phone Controller</title>
+<style>
+:root{--ink:#17131f;--paper:#f4f0e6;--lime:#d8ff3e;--pink:#ff5ca8;--purple:#7856ff;--line:#40364e}
+*{box-sizing:border-box;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--paper);font-family:system-ui,sans-serif;touch-action:none}
+body{height:100dvh;padding:env(safe-area-inset-top) 14px env(safe-area-inset-bottom);display:flex;flex-direction:column;gap:10px}
+header{display:flex;justify-content:space-between;align-items:center;font:10px monospace;letter-spacing:1px;color:var(--lime);padding:8px 2px}
+#status{font:11px system-ui;color:#c8c1d1;text-align:center;min-height:16px}
+button{touch-action:none;-webkit-tap-highlight-color:transparent;border:0;outline:0;color:var(--paper);font-weight:900;display:grid;place-items:center}
+#fullscreen{background:#292233;border:1px solid var(--line);border-radius:20px;padding:8px 12px;font-size:10px;color:var(--lime)}
+.layout{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1fr) auto;gap:12px;align-items:center}
+.dpad{width:min(42vw,210px);height:min(42vw,210px);max-height:35vh;max-width:35vh;position:relative;margin:auto}
+.pad{position:absolute;background:#30283e;border:1px solid #50445f;border-radius:9px;box-shadow:0 4px 0 #100d16}
+.pad:active,.action:active,.utility:active{background:var(--lime);color:var(--ink);transform:translateY(2px)}
+.up,.down{width:33%;height:38%;left:33.5%}.up{top:0}.down{bottom:0}
+.left,.right{width:38%;height:33%;top:33.5%}.left{left:0}.right{right:0}
+.center{position:absolute;inset:33.5%;background:#211b2b;border-radius:5px}
+.actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(10px,3vw,22px);width:min(42vw,210px);margin:auto;transform:rotate(-12deg)}
+.action{aspect-ratio:1;border-radius:50%;background:var(--pink);color:var(--ink);font-size:clamp(20px,7vw,34px);box-shadow:inset -5px -6px 0 #c6377b,0 5px 0 #100d16}
+.action:nth-child(2){background:var(--purple);box-shadow:inset -5px -6px 0 #4e32c3,0 5px 0 #100d16}
+.bottom{grid-column:1/-1;display:flex;justify-content:center;align-items:center;gap:12px;padding-bottom:8px}
+.utility{background:#292233;border:1px solid var(--line);border-radius:30px;padding:12px 22px;min-width:78px;font-size:12px;box-shadow:0 4px 0 #100d16}
+.shoulders{display:flex;justify-content:space-between;gap:12px}
+.shoulders button{flex:1;background:#292233;border:1px solid var(--line);border-radius:14px;padding:12px;font-size:12px}
+.hint{font-size:10px;color:#82788f;text-align:center;line-height:1.5}
+@media(orientation:landscape){.layout{grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1fr) auto}.dpad{max-width:30vw;max-height:65vh;width:min(38vw,230px);height:min(38vw,230px)}.actions{width:min(35vw,220px)}body{gap:6px}.bottom{padding-bottom:2px}}
+</style>
+</head>
+<body>
+<header><span>RETROBOY<br>PHONE GAMEPAD</span><button id="fullscreen" type="button">FULL SCREEN ⛶</button></header>
+<div id="status">Connecting to RETROBOY…</div>
+<div class="shoulders"><button data-code="81">L · Q</button><button data-code="87">R · W</button></div>
+<main class="layout">
+<div class="dpad" aria-label="Directional pad">
+<button class="pad up" data-code="38" aria-label="Up">▲</button>
+<button class="pad down" data-code="40" aria-label="Down">▼</button>
+<button class="pad left" data-code="37" aria-label="Left">◀</button>
+<button class="pad right" data-code="39" aria-label="Right">▶</button><div class="center"></div>
+</div>
+<div class="actions"><button class="action" data-code="90" aria-label="B">B</button><button class="action" data-code="88" aria-label="A">A</button><button class="action" data-code="65" aria-label="Y">Y</button><button class="action" data-code="83" aria-label="X">X</button></div>
+<div class="bottom"><button class="utility" data-code="16">SELECT</button><button class="utility" data-code="13">START</button></div>
+</main>
+<div class="hint">PRESS AND HOLD BUTTONS · CONTROLLER INPUTS ARE SENT TO THE PAIRED RETROBOY TAB<br>Keep the game browser open. No notifications are requested.</div>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+(function(){
+"use strict";
+const params=new URLSearchParams(location.search),hostId=params.get("host"),status=document.getElementById("status");
+let peer=null,conn=null,active=new Set();
+function send(type,code){if(conn&&conn.open)conn.send({type,code});}
+function down(code){if(!active.has(code)){active.add(code);send("down",code)}}
+function up(code){if(active.has(code)){active.delete(code);send("up",code)}}
+function release(){Array.from(active).forEach(up)}
+document.querySelectorAll("[data-code]").forEach(button=>{
+ const code=Number(button.dataset.code);
+ button.addEventListener("pointerdown",e=>{e.preventDefault();button.setPointerCapture(e.pointerId);down(code)});
+ ["pointerup","pointercancel","pointerleave","lostpointercapture"].forEach(type=>button.addEventListener(type,e=>{e.preventDefault();up(code)}));
+});
+document.addEventListener("contextmenu",e=>e.preventDefault());
+document.addEventListener("selectstart",e=>e.preventDefault());
+document.addEventListener("dragstart",e=>e.preventDefault());
+document.addEventListener("gesturestart",e=>e.preventDefault(),{passive:false});
+document.addEventListener("dblclick",e=>e.preventDefault(),{passive:false});
+window.addEventListener("blur",release);window.addEventListener("pagehide",release);
+document.getElementById("fullscreen").addEventListener("click",async()=>{try{if(!document.fullscreenElement&&document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();else if(document.exitFullscreen)await document.exitFullscreen()}catch(e){status.textContent="Fullscreen is not supported by this browser; controller remains usable."}});
+if(!hostId){status.textContent="Invalid pairing link. Scan the QR code from the RETROBOY game window.";return}
+if(!window.Peer){status.textContent="PeerJS could not load. Check the phone's internet connection.";return}
+peer=new Peer();
+peer.on("open",()=>{status.textContent="Connecting to game…";conn=peer.connect(hostId,{reliable:true});conn.on("open",()=>status.textContent="CONNECTED · Have fun!");conn.on("close",()=>{release();status.textContent="Disconnected. Scan the game's QR code to pair again."});conn.on("error",()=>{release();status.textContent="Connection failed. Scan the QR code again."})});
+peer.on("error",err=>status.textContent="Pairing error: "+(err.type||err.message||"unknown"));
+})();
+</script>
+</body>
+</html>
