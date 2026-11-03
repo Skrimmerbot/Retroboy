@@ -7,7 +7,7 @@
   const status=document.getElementById("controllerQRStatus");
   const stopBtn=document.getElementById("controllerQRClose");
   if(!openBtn||!panel||!qr||!status||!stopBtn)return;
-  let peer=null,connection=null,pressed=new Set(),qrcode=null;
+  let peer=null,connection=null,pressed=new Set(),qrcode=null,fullscreenByController=false;\n  panel.style.cssText="display:none;position:fixed;inset:0;z-index:10001;margin:0;padding:20px;background:rgba(8,6,12,.88);backdrop-filter:blur(8px);border:0;border-radius:0;max-width:none;width:100%;height:100%;overflow:auto;place-content:center;text-align:center";\n  const panelInner=panel.querySelector("#controllerQR").parentElement;\n  panelInner.style.cssText="margin:auto;padding:22px;background:#211b2b;border:1px solid var(--lime);border-radius:18px;text-align:center;width:min(420px,100%);";
   const inputIndex={37:6,38:4,39:7,40:5,88:0,90:8,83:1,65:9,13:3,86:2,81:10,69:11};
   function send(type,code){if(connection&&connection.open)connection.send({type,code});}
   function releaseAll(){pressed.forEach(code=>{send("up",code);const manager=window.EJS_emulator&&window.EJS_emulator.gameManager;if(manager&&typeof manager.simulateInput==="function")manager.simulateInput(0,inputIndex[code],0)});pressed.clear();}
@@ -35,7 +35,7 @@
     peer.on("connection",conn=>{
       if(connection){conn.close();return}
       connection=conn;
-      conn.on("open",()=>{status.textContent="PHONE CONNECTED · Emulator input ready: "+(window.EJS_emulator&&window.EJS_emulator.gameManager&&typeof window.EJS_emulator.gameManager.simulateInput==="function"?"YES":"WAITING FOR GAME BOOT");});
+      conn.on("open",()=>{status.textContent="PHONE CONNECTED · Emulator input ready: "+(window.EJS_emulator&&window.EJS_emulator.gameManager&&typeof window.EJS_emulator.gameManager.simulateInput==="function"?"YES":"WAITING FOR GAME BOOT");panel.style.display="none";fullscreenByController=true;const player=document.getElementById("player");if(player.requestFullscreen)player.requestFullscreen().catch(()=>player.classList.add("rb-fullscreen-fallback"));else player.classList.add("rb-fullscreen-fallback");});
       conn.on("data",data=>{
         if(!data||!Number.isInteger(data.code)||!Object.prototype.hasOwnProperty.call(inputIndex,data.code))return;
         const manager=window.EJS_emulator&&window.EJS_emulator.gameManager;
@@ -43,7 +43,7 @@
         if(data.type==="down"&&!pressed.has(data.code)){pressed.add(data.code);manager.simulateInput(0,inputIndex[data.code],1);}
         else if(data.type==="up"&&pressed.has(data.code)){pressed.delete(data.code);manager.simulateInput(0,inputIndex[data.code],0);}
       });
-      conn.on("close",()=>{releaseAll();connection=null;status.textContent="Phone disconnected. Scan the QR code again to reconnect.";});
+      conn.on("close",()=>{releaseAll();connection=null;restoreGameView();status.textContent="Phone disconnected. Game returned to normal view.";});
       conn.on("error",()=>{releaseAll();status.textContent="Controller connection error. Please reconnect.";});
     });
     peer.on("error",err=>{status.textContent="Pairing error: "+(err.type||err.message||"unknown");if(err.type==="unavailable-id")teardown("Could not reserve a pairing ID. Tap PHONE CONTROLLER · QR to retry.");});
