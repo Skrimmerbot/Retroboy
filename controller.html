@@ -9,7 +9,7 @@
 :root{--ink:#17131f;--paper:#f4f0e6;--lime:#d8ff3e;--pink:#ff5ca8;--purple:#7856ff;--line:#40364e}
 *{box-sizing:border-box;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--paper);font-family:system-ui,sans-serif;touch-action:none}
-body{height:100dvh;padding:env(safe-area-inset-top) 14px env(safe-area-inset-bottom);display:flex;flex-direction:column;gap:10px}
+body{height:100dvh;padding:0;display:flex;flex-direction:column;gap:0} .shell{height:100dvh;width:100vw;padding:env(safe-area-inset-top) 14px env(safe-area-inset-bottom);display:flex;flex-direction:column;gap:10px;overflow:hidden} @media(orientation:portrait){.shell{position:fixed;width:100dvh;height:100vw;top:0;left:0;transform-origin:top left;transform:translateX(100vw) rotate(90deg);padding:env(safe-area-inset-left) 14px env(safe-area-inset-right)}}
 header{display:flex;justify-content:space-between;align-items:center;font:10px monospace;letter-spacing:1px;color:var(--lime);padding:8px 2px}
 #status{font:11px system-ui;color:#c8c1d1;text-align:center;min-height:16px}
 button{touch-action:none;-webkit-tap-highlight-color:transparent;border:0;outline:0;color:var(--paper);font-weight:900;display:grid;place-items:center}
@@ -29,10 +29,10 @@ button{touch-action:none;-webkit-tap-highlight-color:transparent;border:0;outlin
 .shoulders{display:flex;justify-content:space-between;gap:12px}
 .shoulders button{flex:1;background:#292233;border:1px solid var(--line);border-radius:14px;padding:12px;font-size:12px}
 .hint{font-size:10px;color:#82788f;text-align:center;line-height:1.5}
-@media(orientation:landscape){.layout{grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1fr) auto}.dpad{max-width:30vw;max-height:65vh;width:min(38vw,230px);height:min(38vw,230px)}.actions{width:min(35vw,220px)}body{gap:6px}.bottom{padding-bottom:2px}}
+@media(orientation:landscape),@media(orientation:portrait){.layout{grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1fr) auto}.dpad{max-width:30vw;max-height:65vh;width:min(38vw,230px);height:min(38vw,230px)}.actions{width:min(35vw,220px)}body{gap:6px}.bottom{padding-bottom:2px}}
 </style>
 </head>
-<body>
+<body><div class="shell">
 <header><span>RETROBOY<br>PHONE GAMEPAD</span><button id="fullscreen" type="button">FULL SCREEN ⛶</button></header>
 <div id="status">Connecting to RETROBOY…</div>
 <div class="shoulders"><button data-code="81">L · Q</button><button data-code="69">R · E</button></div>
@@ -59,16 +59,16 @@ function up(code){if(active.has(code)){active.delete(code);send("up",code)}}
 function release(){Array.from(active).forEach(up)}
 document.querySelectorAll("[data-code]").forEach(button=>{
  const code=Number(button.dataset.code);
- button.addEventListener("pointerdown",e=>{e.preventDefault();button.setPointerCapture(e.pointerId);down(code)});
+ button.addEventListener("pointerdown",e=>{e.preventDefault();try{button.setPointerCapture(e.pointerId)}catch(_){}down(code)}); button.addEventListener("touchstart",e=>{e.preventDefault();down(code)},{passive:false});
  ["pointerup","pointercancel","pointerleave","lostpointercapture"].forEach(type=>button.addEventListener(type,e=>{e.preventDefault();up(code)}));
 });
-document.addEventListener("contextmenu",e=>e.preventDefault());
+document.addEventListener("contextmenu",e=>e.preventDefault()); document.addEventListener("touchstart",e=>{if(e.target.closest("button"))e.preventDefault()},{passive:false}); document.addEventListener("touchend",e=>{if(e.target.closest("button"))e.preventDefault()},{passive:false});
 document.addEventListener("selectstart",e=>e.preventDefault());
 document.addEventListener("dragstart",e=>e.preventDefault());
 document.addEventListener("gesturestart",e=>e.preventDefault(),{passive:false});
 document.addEventListener("dblclick",e=>e.preventDefault(),{passive:false});
 window.addEventListener("blur",release);window.addEventListener("pagehide",release);
-document.getElementById("fullscreen").addEventListener("click",async()=>{try{if(!document.fullscreenElement&&document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();else if(document.exitFullscreen)await document.exitFullscreen()}catch(e){status.textContent="Fullscreen is not supported by this browser; controller remains usable."}});
+document.getElementById("fullscreen").addEventListener("click",async()=>{try{if(!document.fullscreenElement&&document.documentElement.requestFullscreen){await document.documentElement.requestFullscreen();if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock("landscape")}else if(document.exitFullscreen)await document.exitFullscreen()}catch(e){status.textContent="Landscape layout is active. Browser fullscreen/orientation lock is not supported on this device."}});
 if(!hostId){status.textContent="Invalid pairing link. Scan the QR code from the RETROBOY game window.";return}
 if(!window.Peer){status.textContent="PeerJS could not load. Check the phone's internet connection.";return}
 peer=new Peer();
@@ -76,5 +76,5 @@ peer.on("open",()=>{status.textContent="Connecting to game…";conn=peer.connect
 peer.on("error",err=>status.textContent="Pairing error: "+(err.type||err.message||"unknown"));
 })();
 </script>
-</body>
+</div></body>
 </html>
