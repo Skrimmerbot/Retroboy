@@ -14,7 +14,22 @@
   const inputIndex={37:6,38:4,39:7,40:5,88:0,90:8,83:1,65:9,13:3,86:2,81:10,69:11};
   function send(type,code){if(connection&&connection.open)connection.send({type,code});}
   function releaseAll(){pressed.forEach(code=>{send("up",code);const manager=window.EJS_emulator&&window.EJS_emulator.gameManager;if(manager&&typeof manager.simulateInput==="function")manager.simulateInput(0,inputIndex[code],0)});pressed.clear();}
+  function restoreGameView(pauseGame){
+    const player=document.getElementById("player");
+    const emulator=window.EJS_emulator;
+    const manager=emulator&&emulator.gameManager;
+    if(pauseGame){
+      try{if(manager&&typeof manager.toggleMainLoop==="function")manager.toggleMainLoop(false);}catch(e){}
+      try{if(emulator&&typeof emulator.pause==="function")emulator.pause();}catch(e){}
+    }
+    if(document.fullscreenElement){try{document.exitFullscreen().catch(()=>{});}catch(e){}}
+    if(player)player.classList.remove("rb-fullscreen-fallback");
+    const fullscreenButton=document.getElementById("fullscreenBtn");
+    if(fullscreenButton)fullscreenButton.textContent="⛶ FULL SCREEN";
+    fullscreenByController=false;
+  }
   function teardown(message){
+    if(connection||fullscreenByController)restoreGameView(true);
     releaseAll();
     if(connection){try{connection.close()}catch(e){}connection=null}
     if(peer){try{peer.destroy()}catch(e){}peer=null}
@@ -46,8 +61,8 @@
         if(data.type==="down"&&!pressed.has(data.code)){pressed.add(data.code);manager.simulateInput(0,inputIndex[data.code],1);}
         else if(data.type==="up"&&pressed.has(data.code)){pressed.delete(data.code);manager.simulateInput(0,inputIndex[data.code],0);}
       });
-      conn.on("close",()=>{releaseAll();connection=null;restoreGameView();status.textContent="Phone disconnected. Game returned to normal view.";});
-      conn.on("error",()=>{releaseAll();status.textContent="Controller connection error. Please reconnect.";});
+      conn.on("close",()=>{restoreGameView(true);releaseAll();connection=null;status.textContent="Phone disconnected. Game paused and returned to normal view.";});
+      conn.on("error",()=>{restoreGameView(true);releaseAll();status.textContent="Controller connection error. Game paused and restored to normal view.";});
     });
     peer.on("error",err=>{status.textContent="Pairing error: "+(err.type||err.message||"unknown");if(err.type==="unavailable-id")teardown("Could not reserve a pairing ID. Tap PHONE CONTROLLER · QR to retry.");});
     peer.on("disconnected",()=>{status.textContent="PeerJS signaling disconnected. Reconnecting…";if(peer&&!peer.destroyed)peer.reconnect();});
