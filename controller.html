@@ -34,7 +34,7 @@ button{touch-action:none;-webkit-tap-highlight-color:transparent;border:0;outlin
 </head>
 <body><div class="shell">
 <header><span>RETROBOY<br>PHONE GAMEPAD</span><button id="fullscreen" type="button">FULL SCREEN ⛶</button><button id="disconnect" type="button" style="background:#ff5ca8;color:#17131f;border-radius:20px;padding:8px 12px;font-size:10px">DISCONNECT ✕</button></header>
-<div id="status">Connecting to RETROBOY…</div>
+<div id="status">Connecting to RETROBOY…</div><div id="qrScanner" style="display:none;position:fixed;inset:0;z-index:9999;background:#17131f;color:#f4f0e6;padding:18px;overflow:auto"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><strong style="color:#d8ff3e">SCAN RETROBOY RECONNECT QR</strong><button id="scannerClose" type="button" style="background:#ff5ca8;color:#17131f;padding:8px 12px;border-radius:16px">CLOSE</button></div><div id="qrReader" style="width:min(92vw,520px);margin:auto"></div><p id="scannerStatus" style="text-align:center;font-size:12px">Allow camera access and point at the QR displayed on RETROBOY.</p></div>
 <div class="shoulders"><button data-code="81">L · Q</button><button data-code="69">R · E</button></div>
 <main class="layout">
 <div class="dpad" aria-label="Directional pad">
@@ -47,7 +47,7 @@ button{touch-action:none;-webkit-tap-highlight-color:transparent;border:0;outlin
 <div class="bottom"><button class="utility" data-code="86">SELECT</button><button class="utility" data-code="13">START</button></div>
 </main>
 <div class="hint">PRESS AND HOLD BUTTONS · CONTROLLER INPUTS ARE SENT TO THE PAIRED RETROBOY TAB<br>Keep the game browser open. No notifications are requested.</div>
-<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script><script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
 (function(){
 "use strict";
@@ -66,7 +66,7 @@ document.querySelectorAll("[data-code]").forEach(button=>{
  button.addEventListener("pointerdown",e=>{e.preventDefault();try{button.setPointerCapture(e.pointerId)}catch(_){}down(code)}); button.addEventListener("touchstart",e=>{e.preventDefault();down(code)},{passive:false});
  ["pointerup","pointercancel","pointerleave","lostpointercapture"].forEach(type=>button.addEventListener(type,e=>{e.preventDefault();up(code)}));
 });
-document.addEventListener("contextmenu",e=>e.preventDefault()); document.addEventListener("touchstart",e=>{if(e.target.closest("button"))e.preventDefault()},{passive:false}); document.addEventListener("touchend",e=>{if(e.target.closest("button"))e.preventDefault()},{passive:false});
+document.addEventListener("contextmenu",e=>e.preventDefault()); document.addEventListener("touchstart",e=>{if(e.target.closest("[data-code]"))e.preventDefault()},{passive:false}); document.addEventListener("touchend",e=>{if(e.target.closest("[data-code]"))e.preventDefault()},{passive:false});
 document.addEventListener("selectstart",e=>e.preventDefault());
 document.addEventListener("dragstart",e=>e.preventDefault());
 document.addEventListener("gesturestart",e=>e.preventDefault(),{passive:false});
