@@ -35,7 +35,7 @@
     peer.on("connection",conn=>{
       if(connection){conn.close();return}
       connection=conn;
-      conn.on("open",()=>{status.textContent="PHONE CONNECTED · Tap controls on your phone.";});
+      conn.on("open",()=>{status.textContent="PHONE CONNECTED · Emulator input ready: "+(window.EJS_emulator&&window.EJS_emulator.gameManager&&typeof window.EJS_emulator.gameManager.simulateInput==="function"?"YES":"WAITING FOR GAME BOOT");});
       conn.on("data",data=>{
         if(!data||!Number.isInteger(data.code)||!Object.prototype.hasOwnProperty.call(inputIndex,data.code))return;
         const manager=window.EJS_emulator&&window.EJS_emulator.gameManager;
