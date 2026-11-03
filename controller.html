@@ -33,7 +33,7 @@ button{touch-action:none;-webkit-tap-highlight-color:transparent;border:0;outlin
 @media(orientation:portrait){.dpad{width:min(36vh,230px);height:min(36vh,230px);max-width:68vw;max-height:68vw}.actions{width:min(34vh,220px)}.layout{gap:8px}}\n</style>
 </head>
 <body><div class="shell">
-<header><span>RETROBOY<br>PHONE GAMEPAD</span><button id="fullscreen" type="button">FULL SCREEN ⛶</button></header>
+<header><span>RETROBOY<br>PHONE GAMEPAD</span><button id="fullscreen" type="button">FULL SCREEN ⛶</button><button id="disconnect" type="button" style="background:#ff5ca8;color:#17131f;border-radius:20px;padding:8px 12px;font-size:10px">DISCONNECT ✕</button></header>
 <div id="status">Connecting to RETROBOY…</div>
 <div class="shoulders"><button data-code="81">L · Q</button><button data-code="69">R · E</button></div>
 <main class="layout">
@@ -52,11 +52,14 @@ button{touch-action:none;-webkit-tap-highlight-color:transparent;border:0;outlin
 (function(){
 "use strict";
 const params=new URLSearchParams(location.search),hostId=params.get("host"),status=document.getElementById("status");
+const disconnectButton=document.getElementById("disconnect");
 let peer=null,conn=null,active=new Set();
 function send(type,code){if(conn&&conn.open)conn.send({type,code});}
 function down(code){if(!active.has(code)){active.add(code);send("down",code)}}
 function up(code){if(active.has(code)){active.delete(code);send("up",code)}}
 function release(){Array.from(active).forEach(up)}
+function disconnect(){release();if(conn&&conn.open){try{conn.send({type:"disconnect"});conn.close()}catch(e){}}if(peer){try{peer.destroy()}catch(e){}}status.textContent="Disconnected. You can close this page.";disconnectButton.disabled=true;disconnectButton.textContent="DISCONNECTED";}
+disconnectButton.addEventListener("click",disconnect);
 document.querySelectorAll("[data-code]").forEach(button=>{
  const code=Number(button.dataset.code);
  button.addEventListener("pointerdown",e=>{e.preventDefault();try{button.setPointerCapture(e.pointerId)}catch(_){}down(code)}); button.addEventListener("touchstart",e=>{e.preventDefault();down(code)},{passive:false});
@@ -72,7 +75,7 @@ document.getElementById("fullscreen").addEventListener("click",async()=>{try{if(
 if(!hostId){status.textContent="Invalid pairing link. Scan the QR code from the RETROBOY game window.";return}
 if(!window.Peer){status.textContent="PeerJS could not load. Check the phone's internet connection.";return}
 peer=new Peer();
-peer.on("open",()=>{status.textContent="Connecting to game…";conn=peer.connect(hostId,{reliable:true});conn.on("open",()=>status.textContent="CONNECTED · Have fun!");conn.on("close",()=>{release();status.textContent="Disconnected. Scan the game's QR code to pair again."});conn.on("error",()=>{release();status.textContent="Connection failed. Scan the QR code again."})});
+peer.on("open",()=>{status.textContent="Connecting to game…";conn=peer.connect(hostId,{reliable:true});conn.on("open",()=>status.textContent="CONNECTED · Have fun!");conn.on("close",()=>{release();status.textContent="Disconnected from game.";disconnectButton.disabled=true;disconnectButton.textContent="DISCONNECTED";});conn.on("error",()=>{release();status.textContent="Connection failed. Scan the QR code again."})});
 peer.on("error",err=>status.textContent="Pairing error: "+(err.type||err.message||"unknown"));
 })();
 </script>
