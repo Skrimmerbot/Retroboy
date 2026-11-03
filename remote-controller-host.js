@@ -34,6 +34,6 @@ conn.on("error",()=>{releasePlayer(player);connections[player]=null;presentMissi
 peer.on("error",err=>statusText("Player "+player+" pairing error: "+(err.type||err.message||"unknown")));
 peer.on("disconnected",()=>{statusText("Signaling reconnecting for P"+player+"…");if(peer&&!peer.destroyed)peer.reconnect()})}
 function begin(which){teardown(false);mode=which;active=false;showPanel();clearQrs();if(which==="single"){card.querySelector("#controllerQR").style.display="none";initPeer(1)}else{card.querySelector("#controllerQR").style.display="none";statusText("First, scan the Player 1 QR.");initPeer(1)}}
-function teardown(pause){releaseAll();if(pause)restoreView(true);[1,2].forEach(p=>{if(connections[p])try{connections[p].close()}catch(e){}connections[p]=null;if(peers[p])try{peers[p].destroy()}catch(e){}peers[p]=null});clearQrs();active=false;fullscreenByController=false}
+function teardown(pause){releaseAll();if(pause||fullscreenByController)restoreView(true);[1,2].forEach(p=>{if(connections[p])try{connections[p].close()}catch(e){}connections[p]=null;if(peers[p])try{peers[p].destroy()}catch(e){}peers[p]=null});clearQrs();active=false;fullscreenByController=false}
 singleBtn.addEventListener("click",()=>begin("single"));twoBtn.addEventListener("click",()=>begin("two"));stopBtn.addEventListener("click",()=>{teardown(true);hidePanel();statusText("Phone controllers stopped.")});window.addEventListener("pagehide",()=>teardown(true));
 })();
