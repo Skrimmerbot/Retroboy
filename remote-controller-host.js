@@ -8,7 +8,7 @@
   const stopBtn=document.getElementById("controllerQRClose");
   if(!openBtn||!panel||!qr||!status||!stopBtn)return;
   let peer=null,connection=null,pressed=new Set(),qrcode=null;
-  const keys={37:"ArrowLeft",38:"ArrowUp",39:"ArrowRight",40:"ArrowDown",90:"z",88:"x",65:"a",83:"s",13:"Enter",16:"Shift",81:"q",87:"w"};
+  const keys={37:"ArrowLeft",38:"ArrowUp",39:"ArrowRight",40:"ArrowDown",88:"x",90:"z",83:"s",65:"a",13:"Enter",86:"v",81:"q",69:"e"};
   function send(type,code){if(connection&&connection.open)connection.send({type,code});}
   function releaseAll(){pressed.forEach(code=>send("up",code));pressed.clear();}
   function teardown(message){
