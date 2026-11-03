@@ -51,7 +51,7 @@
   }
   openBtn.addEventListener("click",()=>{
     const show=panel.style.display==="none";
-    panel.style.display=show?"block":"none";
+    panel.style.display=show?"grid":"none";
     if(show)start();else teardown("Controller stopped.");
   });
   stopBtn.addEventListener("click",()=>{teardown("Controller stopped.");panel.style.display="none";});
