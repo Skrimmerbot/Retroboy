@@ -52,7 +52,8 @@ button{touch-action:none;-webkit-tap-highlight-color:transparent;border:0;outlin
 (function(){
 "use strict";
 const params=new URLSearchParams(location.search),hostId=params.get("host"),playerNumber=params.get("player")||"1",status=document.getElementById("status");
-const disconnectButton=document.getElementById("disconnect");\ndocument.querySelector("header span").innerHTML="RETROBOY<br>PLAYER "+playerNumber+" GAMEPAD";
+const disconnectButton=document.getElementById("disconnect");
+document.querySelector("header span").innerHTML="RETROBOY<br>PLAYER "+playerNumber+" GAMEPAD";
 let peer=null,conn=null,active=new Set();
 function send(type,code){if(conn&&conn.open)conn.send({type,code});}
 function down(code){if(!active.has(code)){active.add(code);send("down",code)}}
