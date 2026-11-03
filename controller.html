@@ -15,7 +15,7 @@ header{display:flex;justify-content:space-between;align-items:center;font:10px m
 button{touch-action:none;-webkit-tap-highlight-color:transparent;border:0;outline:0;color:var(--paper);font-weight:900;display:grid;place-items:center}
 #fullscreen{background:#292233;border:1px solid var(--line);border-radius:20px;padding:8px 12px;font-size:10px;color:var(--lime)}
 .layout{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1fr) auto;gap:12px;align-items:center}
-.dpad{width:min(42vw,210px);height:min(42vw,210px);max-height:35vh;max-width:35vh;position:relative;margin:auto}
+.dpad{width:min(36vw,180px);height:min(36vw,180px);max-height:30vh;max-width:30vh;position:relative;margin:auto}
 .pad{position:absolute;background:#30283e;border:1px solid #50445f;border-radius:9px;box-shadow:0 4px 0 #100d16}
 .pad:active,.action:active,.utility:active{background:var(--lime);color:var(--ink);transform:translateY(2px)}
 .up,.down{width:33%;height:38%;left:33.5%}.up{top:0}.down{bottom:0}
@@ -29,8 +29,8 @@ button{touch-action:none;-webkit-tap-highlight-color:transparent;border:0;outlin
 .shoulders{display:flex;justify-content:space-between;gap:12px}
 .shoulders button{flex:1;background:#292233;border:1px solid var(--line);border-radius:14px;padding:12px;font-size:12px}
 .hint{font-size:10px;color:#82788f;text-align:center;line-height:1.5}
-@media (orientation:landscape), (orientation:portrait){.layout{grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1fr) auto}.dpad{max-width:30vw;max-height:65vh;width:min(38vw,230px);height:min(38vw,230px)}.actions{width:min(42vw,250px)}body{gap:6px}.bottom{padding-bottom:2px}}
-@media(orientation:portrait){.dpad{width:min(36vh,230px);height:min(36vh,230px);max-width:68vw;max-height:68vw}.actions{width:min(42vh,250px)}.layout{gap:8px}}\n</style>
+@media (orientation:landscape), (orientation:portrait){.layout{grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1fr) auto}.dpad{max-width:26vw;max-height:60vh;width:min(32vw,200px);height:min(32vw,200px)}.actions{width:min(42vw,250px)}body{gap:6px}.bottom{padding-bottom:2px}}
+@media(orientation:portrait){.dpad{width:min(30vh,200px);height:min(30vh,200px);max-width:58vw;max-height:58vw}.actions{width:min(42vh,250px)}.layout{gap:8px}}\n</style>
 </head>
 <body><div class="shell">
 <header><span>RETROBOY<br>PHONE GAMEPAD</span><button id="fullscreen" type="button">FULL SCREEN ⛶</button><button id="disconnect" type="button" style="background:#ff5ca8;color:#17131f;border-radius:20px;padding:8px 12px;font-size:10px">DISCONNECT ✕</button></header>
