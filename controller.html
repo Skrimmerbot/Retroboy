@@ -20,17 +20,17 @@ button{touch-action:none;-webkit-tap-highlight-color:transparent;border:0;outlin
 .pad:active,.action:active,.utility:active{background:var(--lime);color:var(--ink);transform:translateY(2px)}
 .up,.down{width:33%;height:38%;left:33.5%}.up{top:0}.down{bottom:0}
 .left,.right{width:38%;height:33%;top:33.5%}.left{left:0}.right{right:0}
-.center{position:absolute;inset:33.5%;background:#211b2b;border-radius:5px}
-.actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(10px,3vw,22px);width:min(42vw,210px);margin:auto;transform:rotate(-12deg)}
-.action{aspect-ratio:1;border-radius:50%;background:var(--pink);color:var(--ink);font-size:clamp(20px,7vw,34px);box-shadow:inset -5px -6px 0 #c6377b,0 5px 0 #100d16}
+.diagonal{width:30%;height:30%;font-size:clamp(14px,4vw,22px);background:#453754}.up-left{top:0;left:0}.up-right{top:0;right:0}.down-left{bottom:0;left:0}.down-right{bottom:0;right:0}.center{position:absolute;inset:33.5%;background:#211b2b;border-radius:5px;pointer-events:none}
+.actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:clamp(7px,2vw,14px);width:min(48vw,260px);margin:auto;transform:rotate(-8deg)}
+.action{aspect-ratio:1;border-radius:50%;background:var(--pink);color:var(--ink);font-size:clamp(18px,5.5vw,30px);box-shadow:inset -4px -5px 0 #c6377b,0 4px 0 #100d16}.action:nth-child(2),.action:nth-child(5){background:var(--purple);box-shadow:inset -4px -5px 0 #4e32c3,0 4px 0 #100d16}.action:nth-child(3),.action:nth-child(6){background:var(--lime);box-shadow:inset -4px -5px 0 #a4c922,0 4px 0 #100d16;font-size:clamp(14px,4vw,22px)}
 .action:nth-child(2){background:var(--purple);box-shadow:inset -5px -6px 0 #4e32c3,0 5px 0 #100d16}
 .bottom{grid-column:1/-1;display:flex;justify-content:center;align-items:center;gap:12px;padding-bottom:8px}
 .utility{background:#292233;border:1px solid var(--line);border-radius:30px;padding:12px 22px;min-width:78px;font-size:12px;box-shadow:0 4px 0 #100d16}
 .shoulders{display:flex;justify-content:space-between;gap:12px}
 .shoulders button{flex:1;background:#292233;border:1px solid var(--line);border-radius:14px;padding:12px;font-size:12px}
 .hint{font-size:10px;color:#82788f;text-align:center;line-height:1.5}
-@media (orientation:landscape), (orientation:portrait){.layout{grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1fr) auto}.dpad{max-width:30vw;max-height:65vh;width:min(38vw,230px);height:min(38vw,230px)}.actions{width:min(35vw,220px)}body{gap:6px}.bottom{padding-bottom:2px}}
-@media(orientation:portrait){.dpad{width:min(36vh,230px);height:min(36vh,230px);max-width:68vw;max-height:68vw}.actions{width:min(34vh,220px)}.layout{gap:8px}}\n</style>
+@media (orientation:landscape), (orientation:portrait){.layout{grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1fr) auto}.dpad{max-width:30vw;max-height:65vh;width:min(38vw,230px);height:min(38vw,230px)}.actions{width:min(42vw,250px)}body{gap:6px}.bottom{padding-bottom:2px}}
+@media(orientation:portrait){.dpad{width:min(36vh,230px);height:min(36vh,230px);max-width:68vw;max-height:68vw}.actions{width:min(42vh,250px)}.layout{gap:8px}}\n</style>
 </head>
 <body><div class="shell">
 <header><span>RETROBOY<br>PHONE GAMEPAD</span><button id="fullscreen" type="button">FULL SCREEN ⛶</button><button id="disconnect" type="button" style="background:#ff5ca8;color:#17131f;border-radius:20px;padding:8px 12px;font-size:10px">DISCONNECT ✕</button></header>
@@ -41,9 +41,9 @@ button{touch-action:none;-webkit-tap-highlight-color:transparent;border:0;outlin
 <button class="pad up" data-code="38" aria-label="Up">▲</button>
 <button class="pad down" data-code="40" aria-label="Down">▼</button>
 <button class="pad left" data-code="37" aria-label="Left">◀</button>
-<button class="pad right" data-code="39" aria-label="Right">▶</button><div class="center"></div>
+<button class="pad right" data-code="39" aria-label="Right">▶</button><button class="pad diagonal up-left" data-code="1001" aria-label="Up left">↖</button><button class="pad diagonal up-right" data-code="1002" aria-label="Up right">↗</button><button class="pad diagonal down-left" data-code="1003" aria-label="Down left">↙</button><button class="pad diagonal down-right" data-code="1004" aria-label="Down right">↘</button><div class="center"></div>
 </div>
-<div class="actions"><button class="action" data-code="88" aria-label="B">B</button><button class="action" data-code="90" aria-label="A">A</button><button class="action" data-code="83" aria-label="Y">Y</button><button class="action" data-code="65" aria-label="X">X</button></div>
+<div class="actions"><button class="action" data-code="88" aria-label="B">B</button><button class="action" data-code="90" aria-label="A">A</button><button class="action" data-code="1005" aria-label="A plus B">A+B</button><button class="action" data-code="83" aria-label="Y">Y</button><button class="action" data-code="65" aria-label="X">X</button><button class="action" data-code="1006" aria-label="X plus Y">X+Y</button></div>
 <div class="bottom"><button class="utility" data-code="86">SELECT</button><button class="utility" data-code="13">START</button></div>
 </main>
 <div class="hint">PRESS AND HOLD BUTTONS · CONTROLLER INPUTS ARE SENT TO THE PAIRED RETROBOY TAB<br>Keep the game browser open. No notifications are requested.</div>
