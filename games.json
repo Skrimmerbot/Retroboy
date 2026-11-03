@@ -25,19 +25,29 @@
       "title": "Mega Man Xtreme",
       "system": "GAME BOY COLOR · ACTION",
       "rom": "roms/Mega Man Xtreme (USA, Europe) (GB Compatible).gbc",
-      "art": "◆"
+      "art": "◆",
+      "cover": "covers/mega_man_xtreme.jpeg"
+    },
+    {
+      "title": "Nekketsu Kakutou Densetsu",
+      "system": "NES · FIGHTING",
+      "rom": "roms/Nekketsu Kakutou Densetsu (Riki Kunio) (J) [T-Eng0.95].zip",
+      "art": "⚔",
+      "cover": "covers/fighting_legend.png"
     },
     {
       "title": "River City Ransom",
       "system": "NES · BEAT ’EM UP",
       "rom": "roms/River City Ransom.zip",
-      "art": "✕"
+      "art": "✕",
+      "cover": "covers/river_city_ransom.jpeg"
     },
     {
       "title": "Nekketsu Kouha Kunio-Kun: Bangai Rantou-Hen",
       "system": "GAME BOY · ACTION",
       "rom": "roms/Nekketsu Kouha Kunio-Kun - Bangai Rantou-Hen (J).gb",
-      "art": "◈"
+      "art": "◈",
+      "cover": "covers/Koha_kunio_kun.jpeg"
     }
   ]
 }
