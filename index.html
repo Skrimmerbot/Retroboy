@@ -214,6 +214,7 @@ document.addEventListener("gestureend",function(event){event.preventDefault();},
 document.addEventListener("dblclick",function(event){event.preventDefault();},{passive:false});
 </script>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="./remote-controller-host.js"></script>
 <script src="./popular-games.js"></script>
 
@@ -311,7 +312,7 @@ document.addEventListener("dblclick",function(event){event.preventDefault();},{p
       await navigator.serviceWorker.register("./sw.js");
       await navigator.serviceWorker.ready;
       const cache=await caches.open(CACHE_NAME);
-      const files=["./","./index.html","./popular-games.js","./games.json","./manifest.json","./icon.svg","./archive-worker.js","https://cdn.emulatorjs.org/stable/data/loader.js","https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"];
+      const files=["./","./index.html","./popular-games.js","./games.json","./manifest.json","./icon.svg","./archive-worker.js","./controller.html","./remote-controller-host.js","https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js","https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js","https://cdn.emulatorjs.org/stable/data/loader.js","https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"];
       for(const file of files){
         const absolute=new URL(file,document.baseURI).href;
         try{await saveUrl(cache,absolute);}
