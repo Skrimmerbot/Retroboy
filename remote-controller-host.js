@@ -7,7 +7,8 @@
   const status=document.getElementById("controllerQRStatus");
   const stopBtn=document.getElementById("controllerQRClose");
   if(!openBtn||!panel||!qr||!status||!stopBtn)return;
-  let peer=null,connection=null,pressed=new Set(),qrcode=null,fullscreenByController=false;\n  panel.style.cssText="display:none;position:fixed;inset:0;z-index:10001;margin:0;padding:20px;background:rgba(8,6,12,.88);backdrop-filter:blur(8px);border:0;border-radius:0;max-width:none;width:100%;height:100%;overflow:auto;place-content:center;text-align:center";\n  const panelInner=panel.querySelector("#controllerQR").parentElement;\n  panelInner.style.cssText="margin:auto;padding:22px;background:#211b2b;border:1px solid var(--lime);border-radius:18px;text-align:center;width:min(420px,100%);";
+  let peer=null,connection=null,pressed=new Set(),qrcode=null,fullscreenByController=false;
+  panel.style.cssText="display:none;position:fixed;inset:0;z-index:10001;margin:0;padding:20px;background:rgba(8,6,12,.88);backdrop-filter:blur(8px);border:0;border-radius:0;max-width:none;width:100%;height:100%;overflow:auto;place-content:center;text-align:center";\n  const panelInner=panel.querySelector("#controllerQR").parentElement;\n  panelInner.style.cssText="margin:auto;padding:22px;background:#211b2b;border:1px solid var(--lime);border-radius:18px;text-align:center;width:min(420px,100%);";
   const inputIndex={37:6,38:4,39:7,40:5,88:0,90:8,83:1,65:9,13:3,86:2,81:10,69:11};
   function send(type,code){if(connection&&connection.open)connection.send({type,code});}
   function releaseAll(){pressed.forEach(code=>{send("up",code);const manager=window.EJS_emulator&&window.EJS_emulator.gameManager;if(manager&&typeof manager.simulateInput==="function")manager.simulateInput(0,inputIndex[code],0)});pressed.clear();}
