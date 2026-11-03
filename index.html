@@ -139,8 +139,10 @@ function forceCloseGame(){
   if(guestRomUrl){URL.revokeObjectURL(guestRomUrl);guestRomUrl=null}
   const emulatorScript=document.getElementById("emulator-script");if(emulatorScript)emulatorScript.remove();
   window.EJS_gameUrl="";window.EJS_emulator=null;
-  // Reload tears down EmulatorJS workers and audio contexts but leaves offline caches intact.
-  location.reload();
+  // Restore the player shell without reloading the page, preserving the library grid and its loaded cover thumbnails.
+  player.innerHTML='<div class="player-message"><div style="font-size:45px">▣</div><h3>One more thing, player!</h3><p>Choose a ROM from your device to start another game.</p><label class="file-btn">CHOOSE ROM <input id="romInput" type="file" accept=".gb,.gbc,.gba,.nds,.nes,.zip,.7z,application/octet-stream"></label></div>';
+  const freshRomInput=player.querySelector("#romInput");
+  freshRomInput.addEventListener("change",e=>e.target.files[0]&&handleRomFile(e.target.files[0]));
 }modal.addEventListener("click",e=>{if(e.target===modal){e.preventDefault();minimizePlayer()}});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&modal.classList.contains("open"))minimizePlayer()});document.getElementById("menuToggle").addEventListener("click",()=>document.getElementById("nav").classList.toggle("open"));document.querySelectorAll(".nav a").forEach(a=>a.addEventListener("click",()=>document.getElementById("nav").classList.remove("open")));
 romInput.addEventListener("change",()=>{const file=romInput.files&&romInput.files[0];if(file)handleRomFile(file)});
 window.playLocalCollectionRom=function(file){if(activeGameSession){alert("A game is already running or minimized. Return to the previous game, then press and hold X for about one second to close it before starting another.");if(!modal.classList.contains("open"))openPlayer();return}guestMode=true;openPlayer();handleRomFile(file)};
