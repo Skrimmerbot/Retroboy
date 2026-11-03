@@ -11,9 +11,9 @@
   panel.style.cssText="display:none;position:fixed;inset:0;z-index:10001;margin:0;padding:20px;background:rgba(8,6,12,.88);backdrop-filter:blur(8px);border:0;border-radius:0;max-width:none;width:100%;height:100%;overflow:auto;place-content:center;text-align:center";
   const panelInner=panel.querySelector("#controllerQR").parentElement;
   panelInner.style.cssText="margin:auto;padding:22px;background:#211b2b;border:1px solid var(--lime);border-radius:18px;text-align:center;width:min(420px,100%);";
-  const inputIndex={37:6,38:4,39:7,40:5,88:0,90:8,83:1,65:9,13:3,86:2,81:10,69:11};
+  const inputIndex={37:[6],38:[4],39:[7],40:[5],88:[0],90:[8],83:[1],65:[9],13:[3],86:[2],81:[10],69:[11],1001:[4,6],1002:[4,7],1003:[5,6],1004:[5,7],1005:[0,8],1006:[1,9]};
   function send(type,code){if(connection&&connection.open)connection.send({type,code});}
-  function releaseAll(){pressed.forEach(code=>{send("up",code);const manager=window.EJS_emulator&&window.EJS_emulator.gameManager;if(manager&&typeof manager.simulateInput==="function")manager.simulateInput(0,inputIndex[code],0)});pressed.clear();}
+  function releaseAll(){pressed.forEach(code=>{send("up",code);const manager=window.EJS_emulator&&window.EJS_emulator.gameManager;if(manager&&typeof manager.simulateInput==="function")inputIndex[code].forEach(index=>manager.simulateInput(0,index,0))});pressed.clear();}
   function restoreGameView(pauseGame){
     const player=document.getElementById("player");
     const emulator=window.EJS_emulator;
@@ -58,8 +58,8 @@
         if(!data||!Number.isInteger(data.code)||!Object.prototype.hasOwnProperty.call(inputIndex,data.code))return;
         const manager=window.EJS_emulator&&window.EJS_emulator.gameManager;
         if(!manager||typeof manager.simulateInput!=="function"){status.textContent="Phone connected, but emulator input API is not ready. Reload the game after it boots.";return;}
-        if(data.type==="down"&&!pressed.has(data.code)){pressed.add(data.code);manager.simulateInput(0,inputIndex[data.code],1);}
-        else if(data.type==="up"&&pressed.has(data.code)){pressed.delete(data.code);manager.simulateInput(0,inputIndex[data.code],0);}
+        if(data.type==="down"&&!pressed.has(data.code)){pressed.add(data.code);inputIndex[data.code].forEach(index=>manager.simulateInput(0,index,1));}
+        else if(data.type==="up"&&pressed.has(data.code)){pressed.delete(data.code);inputIndex[data.code].forEach(index=>manager.simulateInput(0,index,0));}
       });
       conn.on("close",()=>{restoreGameView(true);releaseAll();connection=null;status.textContent="Phone disconnected. Game paused and returned to normal view.";});
       conn.on("error",()=>{restoreGameView(true);releaseAll();status.textContent="Controller connection error. Game paused and restored to normal view.";});
