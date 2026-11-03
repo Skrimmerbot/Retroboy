@@ -51,8 +51,8 @@ button{touch-action:none;-webkit-tap-highlight-color:transparent;border:0;outlin
 <script>
 (function(){
 "use strict";
-const params=new URLSearchParams(location.search),hostId=params.get("host"),status=document.getElementById("status");
-const disconnectButton=document.getElementById("disconnect");
+const params=new URLSearchParams(location.search),hostId=params.get("host"),playerNumber=params.get("player")||"1",status=document.getElementById("status");
+const disconnectButton=document.getElementById("disconnect");\ndocument.querySelector("header span").innerHTML="RETROBOY<br>PLAYER "+playerNumber+" GAMEPAD";
 let peer=null,conn=null,active=new Set();
 function send(type,code){if(conn&&conn.open)conn.send({type,code});}
 function down(code){if(!active.has(code)){active.add(code);send("down",code)}}
@@ -75,7 +75,7 @@ document.getElementById("fullscreen").addEventListener("click",async()=>{try{if(
 if(!hostId){status.textContent="Invalid pairing link. Scan the QR code from the RETROBOY game window.";return}
 if(!window.Peer){status.textContent="PeerJS could not load. Check the phone's internet connection.";return}
 peer=new Peer();
-peer.on("open",()=>{status.textContent="Connecting to game…";conn=peer.connect(hostId,{reliable:true});conn.on("open",()=>status.textContent="CONNECTED · Have fun!");conn.on("close",()=>{release();status.textContent="Disconnected from game.";disconnectButton.disabled=true;disconnectButton.textContent="DISCONNECTED";});conn.on("error",()=>{release();status.textContent="Connection failed. Scan the QR code again."})});
+peer.on("open",()=>{status.textContent="Connecting to game…";conn=peer.connect(hostId,{reliable:true});conn.on("open",()=>status.textContent="CONNECTED · PLAYER "+playerNumber+" · Have fun!");conn.on("close",()=>{release();status.textContent="Disconnected from game.";disconnectButton.disabled=true;disconnectButton.textContent="DISCONNECTED";});conn.on("error",()=>{release();status.textContent="Connection failed. Scan the QR code again."})});
 peer.on("error",err=>status.textContent="Pairing error: "+(err.type||err.message||"unknown"));
 })();
 </script>
