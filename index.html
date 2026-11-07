@@ -147,7 +147,42 @@ function forceCloseGame(){
 romInput.addEventListener("change",()=>{const file=romInput.files&&romInput.files[0];if(file)handleRomFile(file)});
 window.playLocalCollectionRom=function(file){if(activeGameSession){alert("A game is already running or minimized. Return to the previous game, then press and hold X for about one second to close it before starting another.");if(!modal.classList.contains("open"))openPlayer();return}guestMode=true;openPlayer();handleRomFile(file)};
 function handleRomFile(file){if(activeGameSession){alert("A game is already running. Return to it and press and hold X for about one second to close it before loading another game.");if(!modal.classList.contains("open"))openPlayer();return}if(/\.zip$/i.test(file.name)){loadZip(file);return}if(/\.7z$/i.test(file.name)){load7z(file);return}if(!/\.(gb|gbc|gba|nds|nes)$/i.test(file.name)){player.innerHTML='<div class="player-message"><h3>Oops! Not a Game Boy ROM.</h3><p>Select a .nes, .gb, .gbc, .gba, .nds, or ZIP archive.</p><label class="file-btn">TRY AGAIN<input id="romAgain" type="file" accept=".gb,.gbc,.gba,.nds,.nes,.zip"></label></div>';document.getElementById("romAgain").addEventListener("change",e=>e.target.files[0]&&handleRomFile(e.target.files[0]));return}bootRom(file)}
-async function load7z(file){player.innerHTML='<div class="player-message"><h3>UNPACKING 7Z CARTRIDGE…</h3><p>Extracting a ROM from your 7z archive locally in your browser.</p></div>';try{const mod=await import("https://cdn.jsdelivr.net/npm/libarchive.js@2.0.2/+esm");const Archive=mod.Archive||mod.default?.Archive;if(!Archive)throw new Error("7z extraction library did not initialize");Archive.init({workerUrl:"./archive-worker.js",wasmUrl:"https://cdn.jsdelivr.net/npm/libarchive.js@2.0.2/dist/" });const archive=await Archive.open(file);const files=await archive.extractFiles();const entries=Object.entries(files).filter(([name,value])=>value instanceof File&&/\.(gb|gbc|gba|nds|nes)$/i.test(name)).sort((a,b)=>a[0].length-b[0].length);if(!entries.length)throw new Error("No supported .nes, .gb, .gbc, .gba, or .nds ROM was found inside this 7z archive.");const [name,rom]=entries[0];bootRom(new File([rom],name.split("/").pop(),{type:"application/octet-stream"}))}catch(err){player.innerHTML='<div class="player-message"><h3>Could not unpack 7z archive.</h3><p>'+escapeHtml(err.message||String(err))+'</p><label class="file-btn">TRY ANOTHER<input id="romAgain" type="file" accept=".gb,.gbc,.gba,.nds,.nes,.zip,.7z"></label></div>';document.getElementById("romAgain").addEventListener("change",e=>e.target.files[0]&&handleRomFile(e.target.files[0]))}}
+async function load7z(file){
+  player.innerHTML='<div class="player-message"><h3>UNPACKING 7Z CARTRIDGE…</h3><p>Extracting a ROM from your 7z archive locally in your browser.</p></div>';
+  try{
+    const mod=await import("https://cdn.jsdelivr.net/npm/libarchive.js@2.0.2/+esm");
+    const Archive=mod.Archive||mod.default?.Archive;
+    if(!Archive)throw new Error("7z extraction library did not initialize");
+    Archive.init({workerUrl:"./archive-worker.js",wasmUrl:"https://cdn.jsdelivr.net/npm/libarchive.js@2.0.2/dist/"});
+    const archive=await Archive.open(file);
+    const extracted=await archive.extractFiles();
+    const entries=[];
+    function collect(node,path=""){
+      if(node instanceof File){
+        if(/\.(gb|gbc|gba|nds|nes)$/i.test(node.name))entries.push({path:path||node.name,file:node});
+        return;
+      }
+      if(node&&typeof node==="object"){
+        if(node.file instanceof File){
+          const pathname=node.path||node.pathname||node.file.name;
+          if(/\.(gb|gbc|gba|nds|nes)$/i.test(pathname))entries.push({path:path?path+"/"+pathname:pathname,file:node.file});
+          return;
+        }
+        if(Array.isArray(node)){node.forEach(item=>collect(item,path));return;}
+        Object.entries(node).forEach(([key,value])=>collect(value,path?path+"/"+key:key));
+      }
+    }
+    collect(extracted);
+    entries.sort((a,b)=>a.path.length-b.path.length);
+    if(!entries.length)throw new Error("Archive extraction completed, but no supported ROM was found. Check whether the game file is nested in the archive or uses a supported .gba/.gb/.gbc/.nes/.nds extension.");
+    const chosen=entries[0].file;
+    const name=chosen.name||entries[0].path.split("/").pop();
+    bootRom(new File([chosen],name,{type:"application/octet-stream"}));
+  }catch(err){
+    player.innerHTML='<div class="player-message"><h3>Could not unpack 7z archive.</h3><p>'+escapeHtml(err.message||String(err))+'</p><label class="file-btn">TRY ANOTHER<input id="romAgain" type="file" accept=".gb,.gbc,.gba,.nds,.nes,.zip,.7z"></label></div>';
+    document.getElementById("romAgain").addEventListener("change",e=>e.target.files[0]&&handleRomFile(e.target.files[0]));
+  }
+}
 async function loadZip(file){
   player.innerHTML='<div class="player-message"><h3>UNPACKING CARTRIDGE…</h3><p>Searching ZIP for a .nes, .gb, .gbc, .gba, or .nds ROM.</p></div>';
   if(window.JSZip){unpackZip(file);return}
