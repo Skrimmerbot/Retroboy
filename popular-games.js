@@ -41,7 +41,7 @@
   const grid = section.querySelector(".catalog-grid");
   const status = document.getElementById("driveStatus");
   const OFFLINE_CACHE = "retroboy-offline-v1";
-  function romUrl(game) { return new URL(game.rom, document.baseURI).href; }
+  function romUrl(game) { return new URL(game.rom.split("/").map(part => encodeURIComponent(part)).join("/"), document.baseURI).href; }
   async function refreshOfflineButton(button, game) {
     try { const cache = await caches.open(OFFLINE_CACHE); const saved = await cache.match(romUrl(game)); button.classList.toggle("is-saved", !!saved); button.textContent = saved ? "SAVED OFFLINE" : "SAVE OFFLINE"; button.setAttribute("aria-pressed", saved ? "true" : "false"); } catch (_) { button.textContent = "OFFLINE N/A"; button.disabled = true; }
   }
@@ -96,8 +96,10 @@
     button.disabled = true;
     button.textContent = "…";
     if (status) status.textContent = "Loading " + game.title + "…";
+    const modal = document.getElementById("modal"), player = document.getElementById("player");
+    if (modal && player) { modal.classList.add("open"); document.body.style.overflow = "hidden"; document.getElementById("modalTitle").textContent = "PLAYER ONE, READY?"; const message = document.createElement("div"); message.className = "player-message"; const heading = document.createElement("h3"); heading.textContent = "LOADING " + game.title.toUpperCase() + "…"; const detail = document.createElement("p"); detail.textContent = "Fetching the cartridge and preparing the emulator."; message.append(heading, detail); player.replaceChildren(message); }
     try {
-      const sourceUrl = new URL(game.rom, document.baseURI);
+      const sourceUrl = new URL(romUrl(game));
       const cache = "caches" in window ? await caches.open(OFFLINE_CACHE) : null;
       const playableKey = playableCacheUrl(sourceUrl.href);
       const offlinePlayable = cache ? await cache.match(playableKey) : null;
@@ -126,6 +128,8 @@
       if (status) status.textContent = "Playing " + game.title + " · loaded from the RETROBOY collection.";
     } catch (error) {
       if (status) status.textContent = "Could not load " + game.title + ": " + (error.message || String(error));
+      const player = document.getElementById("player");
+      if (player) { const message = document.createElement("div"); message.className = "player-message"; const heading = document.createElement("h3"); heading.textContent = "COULD NOT LOAD " + game.title.toUpperCase(); const detail = document.createElement("p"); detail.textContent = error.message || String(error); message.append(heading, detail); player.replaceChildren(message); }
     } finally {
       button.disabled = false;
       button.textContent = "▶︎";
